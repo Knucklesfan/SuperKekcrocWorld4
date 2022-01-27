@@ -1,0 +1,42 @@
+<usedebug>false</usedebug>
+<!-- instead of drawing sprites, draws multicolored squares for testing purposes.-->
+
+
+<width>8</width>
+<height>8</height>
+<!-- tilesize, this should be easy to understand.-->
+
+<topsprite>topbar.bmp</topsprite>
+<bottomsprite>bottombar.bmp</bottomsprite>
+<!--basically, width*height, with the first of the 3 tiles being the edge, and everything else being the rest of the sprite. Final tile is the cursor, which shows up in the center of the dialogue box-->
+<!-- this also could change, so i'd advise keeping borders very simple for now.-->
+
+<sidesprite>sidebar.bmp</sidesprite>
+<!--side sprite can be any size, but it's recommended to be w*1 to ensure easy stretching and no clipping.-->
+<!--this might change later, though.-->
+<fillsprite>fill.bmp</fillsprite>
+<!-- i have literally no idea how im gonna implement this-->
+
+<headerfont>0</headerfont>
+<bodyfont>0</bodyfont>
+
+<!-- since this is based on kekcroc world 3's dialogue box (or well, inspired by VWF by randomhacker)
+i'm doing my best to keep the format similar at least for the header. Most isn't implememented yet!
+-->
+
+<requirea>0</requirea>
+<!-- if set to 0, then this box requires you to press A (controller) or X (keyboard) to continue the message.
+Otherwise, the numer here represents how long the box should wait-->
+
+<doanimation>true</doanimation>
+
+<!-- does an animation to pull the box out. -->
+
+<dotextblip>true</dotextblip>
+
+<!-- should text blip out or just immediately print all? YOU DECIDE! -->
+
+<!-- this is all for now, anticipate this file to grow.. tremendously. I also plan to have text stored in this file, but dunno if ill do that just yet. -->
+<!-- might make a fork of DurangoMessager to handle this in a GUI context and let me write more java >:)-->
+
+

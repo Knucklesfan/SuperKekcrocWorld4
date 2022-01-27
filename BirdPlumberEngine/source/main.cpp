@@ -2,9 +2,11 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
+#include <vector>
 #include "font.h"
 #include "background.h"
 #include "util.h"
+#include "message.h"
 
 #define SCREEN_WIDTH 400
 #define SCREEN_HEIGHT 224
@@ -62,11 +64,12 @@ int main(int argc, char* argv[])
             return 1;
         }
 
-
+        std::vector<font*> fnts;
+        std::vector<Mix_Chunk*> sounds;
         font* fnt = new font("small8x8font", renderer);
+        message* msg = new message(renderer, "default", fnts, sounds);
         bg* backg = new bg("cavestory", false, renderer);
-        SDL_Surface* surf = SDL_LoadBMP("./players/kekcroc/0.bmp");
-        SDL_Texture* kekcroc = SDL_CreateTextureFromSurface(renderer, surf);
+        SDL_Texture* kekcroc = util::generateTexture("./players/kekcroc/0.bmp",renderer);
         SDL_Event event;
         bool quit = false;
         Uint64 NOW = SDL_GetPerformanceCounter();
@@ -93,7 +96,8 @@ int main(int argc, char* argv[])
             backg->render(renderer, false);
             fnt->render(200, 112, "KEKCROC WORLD 4", true, renderer);
             fnt->render(200, 128, "Developed by Knuxfan", true, renderer);
-            util::drawTexture(kekcroc, 200, 180, 0, 1.0, false, renderer);
+            util::drawTexture(kekcroc, 200, 180, 0, 1.0, false,SDL_FLIP_NONE, renderer);
+            msg->render(renderer,8,8,128,128);
             SDL_SetRenderTarget(renderer, NULL);
             SDL_RenderClear(renderer);
 

@@ -1,5 +1,5 @@
-OBJS	= background.o font.o main.o util.o
-SOURCE	= source/background.cpp source/font.cpp source/main.cpp source/util.cpp
+OBJS	= background.o font.o main.o util.o message.o
+SOURCE	= source/background.cpp source/font.cpp source/main.cpp source/util.cpp source/message.cpp
 HEADER	= 
 OUT	= skw
 CC	 = g++
@@ -13,7 +13,9 @@ all: $(OBJS)
 
 background.o: source/background.cpp
 	$(CC) $(FLAGS) source/background.cpp 
-
+	
+message.o: source/message.cpp
+	$(CC) $(FLAGS) source/message.cpp 
 font.o: source/font.cpp
 	$(CC) $(FLAGS) source/font.cpp 
 
