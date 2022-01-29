@@ -67,6 +67,7 @@ int main(int argc, char* argv[])
         std::vector<font*> fnts;
         std::vector<Mix_Chunk*> sounds;
         font* fnt = new font("small8x8font", renderer);
+        font* msgfnt = new font("dialoguefont", renderer);
         message* msg = new message(renderer, "default", fnts, sounds);
         bg* backg = new bg("cavestory", false, renderer);
         SDL_Texture* kekcroc = util::generateTexture("./players/kekcroc/0.bmp",renderer);
@@ -95,9 +96,12 @@ int main(int argc, char* argv[])
 
             backg->render(renderer, false);
             fnt->render(200, 112, "KEKCROC WORLD 4", true, renderer);
-            fnt->render(200, 128, "Developed by Knuxfan", true, renderer);
+            fnt->render(200, 128, "DEVELOPED BY KNUXFAN", true, renderer);
             util::drawTexture(kekcroc, 200, 180, 0, 1.0, false,SDL_FLIP_NONE, renderer);
-            msg->render(renderer,8,8,128,128);
+            msg->render(renderer,72,12,240,58);
+            msgfnt->render(renderer, "Kekcroc:", 84, 20, false, 0, 255, 0);
+            msgfnt->render(renderer, "According to all known laws of aviation, there is no way a bee", 84, 36, false, 255, 255, 255, 32*7);
+
             SDL_SetRenderTarget(renderer, NULL);
             SDL_RenderClear(renderer);
 

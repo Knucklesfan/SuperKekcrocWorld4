@@ -26,6 +26,15 @@
 //rotatable text?
 //ofc to have rotatable text i'd have to implement a rendererer similar to the awful one i have for the backgrounds rn
 
+
+//this is effectively just a struct wrapper for what i consider a font.
+//might change later!
+struct letter {
+    char character = ' ';
+    int width;
+    int x;
+    int y;
+};
 class font
 {
     
@@ -44,9 +53,10 @@ class font
         int numberpos = 0;
         int alphabetpos = 10;
         int specialpos = 36;
+        int wordsize = 0;
         std::string name;
         std::string path;
-        std::map<char, int> mapping;
+        std::map<char, letter> mapping;
         void render(SDL_Renderer* renderer, std::string words, int x, int y, bool center);
         void render(SDL_Renderer* renderer, std::string words, int x, int y, bool center, int red, int blue, int green, int wordwrap, bool sine, double pos, double multiplyin, double multiplyout);
         void render(int x, int y, std::string strg, bool center, SDL_Renderer* renderer);

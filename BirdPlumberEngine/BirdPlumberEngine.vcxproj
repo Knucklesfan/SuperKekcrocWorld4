@@ -148,11 +148,13 @@
     <ClCompile Include="source\background.cpp" />
     <ClCompile Include="source\font.cpp" />
     <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\message.cpp" />
     <ClCompile Include="source\util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\background.h" />
     <ClInclude Include="source\font.h" />
+    <ClInclude Include="source\message.h" />
     <ClInclude Include="source\util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

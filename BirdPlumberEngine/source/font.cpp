@@ -13,59 +13,6 @@
 #include <math.h>
 
 
-char alphabet[] = {
-    'A',
-    'B',
-    'C',
-    'D',
-    'E',
-    'F',
-    'G',
-    'H',
-    'I',
-    'J',
-    'K',
-    'L',
-    'M',
-    'N',
-    'O',
-    'P',
-    'Q',
-    'R',
-    'S',
-    'T',
-    'U',
-    'V',
-    'W',
-    'X',
-    'Y',
-    'Z'
-};
-char numbers[] = {
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-};
-char symbols[] = {
-    '.',
-    ',',
-    '*',
-    '_',
-    '-',
-    '!',
-    '$',
-    '%',
-    '=',
-    ':',
-    '\''
-};
 
 #ifdef __SWITCH__
 #define filepath  "/"
@@ -92,25 +39,24 @@ font::font(std::string path, SDL_Renderer* renderer) {
     rapidxml::file<> xmlFile(pth.c_str());
     rapidxml::xml_document<> doc;
     doc.parse<0>(xmlFile.data());
-    name = doc.first_node("name")->value();
-    numberpos = atoi(doc.first_node("numberpos")->value());
-    alphabetpos = atoi(doc.first_node("alphabetpos")->value());
-    specialpos = atoi(doc.first_node("specialpos")->value());
-    width = atoi(doc.first_node("charx")->value());
-    height = atoi(doc.first_node("chary")->value());
-    size = atoi(doc.first_node("chary")->value());
-
-    for(int i = 0; i < 26; i++) {
-        mapping[alphabet[i]] = (alphabetpos+i)*width;
-
+    width = atoi(doc.first_node("width")->value());
+    height = atoi(doc.first_node("height")->value());
+    size = atoi(doc.first_node("row")->value()); 
+    if (doc.first_node("spwidth") != NULL) {
+        wordsize = atoi(doc.first_node("spwidth")->value());
     }
-    for(int i = 0; i < 10; i++) {
-        mapping[numbers[i]] = (numberpos+i)*width;
-        
+    else {
+        wordsize = width;
     }
-    for(int i = 0; i < 10; i++) {
-        mapping[symbols[i]] = (specialpos+i)*width;
-        
+    rapidxml::xml_node<char>* parent = doc.first_node("letters");
+    for (rapidxml::xml_node<char>* child = parent->first_node(); child != NULL; child = child->next_sibling()) {
+        letter let;
+
+        let.x = atoi(child->first_node("posx")->value());
+        let.y = atoi(child->first_node("posy")->value());
+        let.width = atoi(child->first_node("charwid")->value());
+        let.character = child->first_node("char")->value()[0];
+        mapping[let.character] = let;
     }
 
 
@@ -119,12 +65,12 @@ font::font(std::string path, SDL_Renderer* renderer) {
     // thanks to geeks4geeks for being a great code source, i might or might not have copied this to save time but whatever it's literally just a debug function so who cares
     
     
-    std::map<char, int>::iterator itr;
+    std::map<char, letter>::iterator itr;
     std::cout << "\nThe map is : \n";
     std::cout << "\tKEY\tELEMENT\n";
     for (itr = mapping.begin(); itr != mapping.end(); ++itr) {
         std::cout << '\t' << itr->first
-             << '\t' << itr->second << '\n';
+             << '\t' << itr->second.character << '\t' << itr->second.width << '\t' << itr->second.x << '\t' << itr->second.y << '\n';
     }
     std::cout << "\n";
     
@@ -163,9 +109,8 @@ void font::render(SDL_Renderer* renderer, std::string words, int x, int y, bool 
         SDL_SetTextureColorMod( texture, red, blue, green );
 
     }
-    std::transform(words.begin(), words.end(),words.begin(), ::toupper);
     if(wordwrap > 0) {
-        words = wrap(words, wordwrap/width);
+        words = wrap(words, wordwrap/ wordsize);
     }
 
     double tmpy = y;
@@ -176,8 +121,8 @@ void font::render(SDL_Renderer* renderer, std::string words, int x, int y, bool 
             if (sine) {
                 tmpy = y + (sin((pos + i) * multiplyin) * multiplyout);
             }
-            drawTexture(renderer, texture, tmpx, tmpy, 0, 1.0, false, mapping.at(c), 0, width, height);
-            tmpx += width;
+            drawTexture(renderer, texture, tmpx, tmpy, 0, 1.0, false, mapping.at(c).x * width, mapping.at(c).y * height, mapping.at(c).width, height);
+            tmpx += mapping.at(c).width;
         }
         else {
             //std::cout << "LOADED BAD CHAR!!\n";
@@ -187,7 +132,7 @@ void font::render(SDL_Renderer* renderer, std::string words, int x, int y, bool 
                 std::string everythingelse = words.substr(i);
             }
             else {
-                tmpx += width;
+                tmpx += 7;
             }
         }
         i++;
