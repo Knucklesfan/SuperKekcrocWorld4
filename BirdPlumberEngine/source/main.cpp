@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
             util::drawTexture(kekcroc, 200, 180, 0, 1.0, false,SDL_FLIP_NONE, renderer);
             msg->render(renderer,72,12,240,58);
             msgfnt->render(renderer, "Kekcroc:", 84, 20, false, 0, 255, 0);
-            msgfnt->render(renderer, "According to all known laws of aviation, there is no way a bee", 84, 36, false, 255, 255, 255, 32*7);
+            msgfnt->render(renderer, "Alongside this, text can do the following: 1. Leave the message box's central space 2. Exceed the bounds of message box", 84, 36, false, 255, 255, 255, 32*7);
 
             SDL_SetRenderTarget(renderer, NULL);
             SDL_RenderClear(renderer);
