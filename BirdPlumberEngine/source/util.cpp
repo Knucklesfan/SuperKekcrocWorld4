@@ -65,3 +65,62 @@ void util::drawTexture(SDL_Renderer* renderer, SDL_Texture* texture, int x, int 
     SDL_RenderCopyEx(renderer, texture, &srcrect, &sprite, angle, NULL, flip);
 }
 
+//THE FOLLOWING IS ESPECIALLY THANKS TO ICR ON STACKOVERFLOW
+//thank you so much dude for the explaination..
+//translated from C# to C++ by me tho
+//great read: https://stackoverflow.com/questions/17586/best-word-wrap-algorithm
+
+std::string util::wrap(std::string str, int pixels) {
+
+    std::vector<std::string> words = seperateWords(str, ' ');
+    int currentline = 0;
+    std::string output = "";
+
+    for (int i = 0; i < words.size(); i++) {
+        std::string word = words.at(i);
+        std::string modified = word;
+        if (currentline + word.length() > pixels) {
+            if (modified.find('@') < modified.length()) {
+                modified.erase(modified.find('@'), modified.find('@') + 2);
+            }
+            if (currentline > 0) {
+                output += "\n";
+                currentline = 0;
+            }
+            while(word.length() > pixels) {
+                output += word.substr(0, pixels-1) + "";
+                word = word.substr(pixels-1);
+                output += "\n";
+            }
+            modified = modified.substr(modified.find_first_of(' ')+1);
+            
+        }
+        output += word;
+        currentline += modified.length();
+    }
+
+    return output;
+}
+std::vector<std::string> util::seperateWords(std::string string, char sep) {
+    return seperateWords(string, sep, 0);
+}
+std::vector<std::string> util::seperateWords(std::string string, char sep, int x) {
+    std::vector<std::string> parts;
+    int startindex = 0;
+    while (true) {
+        int index = string.find_first_of(sep, startindex);
+        if (index == -1) {
+            parts.push_back(string.substr(startindex));
+            return parts;
+        }
+
+        std::string word = string.substr(startindex, index - startindex-x);
+        char nextchar = string.substr(index, 1).at(0);
+        if (nextchar = sep) {
+
+            parts.push_back(word);
+            parts.push_back(std::string(1, nextchar));
+        }
+        startindex = index + 1;
+    }
+}

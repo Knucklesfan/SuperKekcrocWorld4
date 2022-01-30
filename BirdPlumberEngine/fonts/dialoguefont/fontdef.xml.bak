@@ -5,7 +5,7 @@
 <width>16</width>
 <!--this width is the sprite of the drawn image.-->
 
-<spwidth>7</spwidth>
+<spwidth>20</spwidth>
 <!--this is a VERY rough estimate of per character size for wordwrap calculation. Just, try to get a good estimate? Might make this auto generated.-->
 
 
@@ -452,10 +452,118 @@
         <charwid>3</charwid>
     </letter>
 	<letter>
-        <posx>0</posx>
+        <posx>2</posx>
         <posy>8</posy>
-        <char>z</char>
-        <charwid>!</charwid>
+        <char>?</char>
+        <charwid>7</charwid>
+    </letter>
+	<letter>
+        <posx>6</posx>
+        <posy>8</posy>
+        <char>"</char>
+        <charwid>6</charwid>
+    </letter>
+	<letter>
+        <posx>3</posx>
+        <posy>9</posy>
+        <char>'</char>
+        <charwid>3</charwid>
+    </letter>
+	<letter>
+        <posx>4</posx>
+        <posy>9</posy>
+        <char>,</char>
+        <charwid>3</charwid>
+    </letter>
+	<letter>
+        <posx>5</posx>
+        <posy>9</posy>
+        <char>.</char>
+        <charwid>3</charwid>
+    </letter>
+	<letter>
+        <posx>6</posx>
+        <posy>9</posy>
+        <char>-</char>
+        <charwid>7</charwid>
+    </letter>
+	<letter>
+        <posx>7</posx>
+        <posy>9</posy>
+        <char>_</char>
+        <charwid>7</charwid>
+    </letter>
+	<letter>
+        <posx>1</posx>
+        <posy>10</posy>
+        <char>%</char>
+        <charwid>11</charwid>
+    </letter>
+	<letter>
+        <posx>2</posx>
+        <posy>10</posy>
+        <char>#</char>
+        <charwid>9</charwid>
+    </letter>
+	<letter>
+        <posx>3</posx>
+        <posy>10</posy>
+        <char>/</char>
+        <charwid>6</charwid>
+    </letter>
+	<letter>
+        <posx>4</posx>
+        <posy>10</posy>
+        <char>\</char>
+        <charwid>6</charwid>
+    </letter>
+	<letter>
+        <posx>5</posx>
+        <posy>10</posy>
+        <char>;</char>
+        <charwid>3</charwid>
+    </letter>
+	<letter>
+        <posx>6</posx>
+        <posy>10</posy>
+        <char>:</char>
+        <charwid>3</charwid>
+    </letter>
+	<letter>
+        <posx>7</posx>
+        <posy>10</posy>
+        <char>(</char>
+        <charwid>4</charwid>
+    </letter>
+	<letter>
+        <posx>0</posx>
+        <posy>11</posy>
+        <char>)</char>
+        <charwid>4</charwid>
+    </letter>
+	<letter>
+        <posx>1</posx>
+        <posy>11</posy>
+        <char>[</char>
+        <charwid>4</charwid>
+    </letter>
+	<letter>
+        <posx>2</posx>
+        <posy>11</posy>
+        <char>]</char>
+        <charwid>4</charwid>
+    </letter>
+	<letter>
+        <posx>3</posx>
+        <posy>11</posy>
+        <char>{</char>
+        <charwid>5</charwid>
+    </letter>
+	<letter>
+        <posx>4</posx>
+        <posy>11</posy>
+        <char>}</char>
+        <charwid>5</charwid>
     </letter>
 
 	

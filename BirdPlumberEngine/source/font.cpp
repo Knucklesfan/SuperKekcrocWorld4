@@ -97,6 +97,7 @@ void font::render(SDL_Renderer* renderer, std::string words, int x, int y, bool 
 }
 void font::render(SDL_Renderer* renderer, std::string words, int x, int y, bool center, int red, int blue, int green, int wordwrap, bool sine, double pos, double multiplyin, double multiplyout) {
     int finalwidth = 0;
+    int drawcolor = 0;
     if(center) {
         if (wordwrap > 0 && words.length()*width > wordwrap) {
             finalwidth = wordwrap;
@@ -110,29 +111,45 @@ void font::render(SDL_Renderer* renderer, std::string words, int x, int y, bool 
 
     }
     if(wordwrap > 0) {
-        words = wrap(words, wordwrap/ wordsize);
+        words = util::wrap(words, wordwrap/ wordsize);
     }
 
     double tmpy = y;
     int tmpx = x-finalwidth/2;
     int i = 0;
     for(char& c : words) {
-        if (mapping.find(c) != mapping.end()) {
+        if (i >= 1 && words.at(i-1) == '@') {
+            std::cout << "skipping " << c << ". ";
+            i++;
+            continue;
+        }
+        SDL_SetTextureColorMod(texture, colors[drawcolor].r, colors[drawcolor].g, colors[drawcolor].b);
+        char& a = c;
+        if (mapping.find(c) == mapping.end()) {
+            a = std::toupper(c);
+        }
+        if (mapping.find(a) != mapping.end()) {
             if (sine) {
                 tmpy = y + (sin((pos + i) * multiplyin) * multiplyout);
             }
-            drawTexture(renderer, texture, tmpx, tmpy, 0, 1.0, false, mapping.at(c).x * width, mapping.at(c).y * height, mapping.at(c).width, height);
-            tmpx += mapping.at(c).width;
+            drawTexture(renderer, texture, tmpx, tmpy, 0, 1.0, false, mapping.at(a).x * width, mapping.at(a).y * height, mapping.at(a).width, height);
+            tmpx += mapping.at(a).width;
         }
         else {
             //std::cout << "LOADED BAD CHAR!!\n";
-            if (c == '\n') {
+            if (a == '\n') {
                 tmpy += height;
                 tmpx = x - finalwidth / 2;
-                std::string everythingelse = words.substr(i);
+            }
+            else if (a == '@') {
+                if (i + 1 < words.length()) {
+                    drawcolor = atoi(&words.at(i + 1));
+                    i++;
+                }
+                continue;
             }
             else {
-                tmpx += 7;
+                tmpx += wordsize;
             }
         }
         i++;
@@ -199,55 +216,3 @@ void  font::generateSurfaces(std::string path, SDL_Renderer* renderer) {
 
 
 
-//THE FOLLOWING IS ESPECIALLY THANKS TO ICR ON STACKOVERFLOW
-//thank you so much dude for the explaination..
-//translated from C# to C++ by me tho
-//great read: https://stackoverflow.com/questions/17586/best-word-wrap-algorithm
-
-std::string font::wrap(std::string str, int pixels) {
-    
-    std::vector<std::string> words = seperateWords(str);
-    int currentline = 0;
-    std::string output = "";
-    
-    for(int i = 0; i < words.size(); i++) {
-        std::string word = words.at(i);
-        if(currentline + word.length() > pixels) {
-            if(currentline > 0) {
-                output += "\n";
-                currentline = 0;
-            }
-            /*while(word.length() > pixels) {
-                output += word.substr(0, pixels-1) + ".";
-                word = word.substr(pixels-1);
-                output += "\n";
-            }
-            word = word.substr(word.find_first_of(' ')+1);
-            */
-        }
-        output += word;
-        currentline += word.length();
-    }
-    
-    return output;
-}
-std::vector<std::string> font::seperateWords(std::string string) {
-    std::vector<std::string> parts;
-    int startindex = 0;
-    while(true) {
-        int index = string.find_first_of(' ', startindex);
-        if(index == -1) {
-            parts.push_back(string.substr(startindex));
-            return parts;
-        }
-
-        std::string word = string.substr(startindex,index-startindex);
-        char nextchar = string.substr(index,1).at(0);
-        if(nextchar = ' ') {
-
-            parts.push_back(word);
-            parts.push_back(std::string(1, nextchar));
-        }
-        startindex = index + 1;
-    }
-}

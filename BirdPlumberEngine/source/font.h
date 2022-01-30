@@ -11,7 +11,7 @@
 #include <rapidxml_utils.hpp>
 #include <map>
 #include <utility>      // std::pair, std::make_pair
-
+#include "util.h"
 
 //so, why am I doing this?
 //several reasons, actually.
@@ -35,10 +35,30 @@ struct letter {
     int x;
     int y;
 };
+
+struct color {
+public:
+    color() {};
+    color(int red, int green, int blue) { r = red; g = green; b = blue; }
+    int r, g, b;
+
+};
 class font
 {
-    
 	public:
+        const color colors[10] = {
+            color(255,255,255),
+            color(255,0,0), //1
+            color(0,255,0), //2
+            color(0,0,255), //3
+            color(255,255,0), //4
+            color(255,0,255), //5
+            color(0,255,255), //6
+            color(10,10,10), //7
+            color(0,0,0), //8
+            color(0,0,0) //9
+        };
+
         double incrementsx[10];
         double incrementsy[10];
         double layerposx[10];
@@ -73,6 +93,4 @@ class font
         bool hasEnding(std::string const& fullString, std::string const& ending);
         void generateSurfaces(std::string path, SDL_Renderer* renderer);
         static bool compareFunction (std::string a, std::string b) {return a<b;} 
-        std::vector<std::string> seperateWords(std::string string);
-        std::string wrap(std::string str, int pixels);
 };

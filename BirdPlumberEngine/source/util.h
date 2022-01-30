@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <string>
 #include <iostream>
+#include <vector>
 namespace util {
 	void drawTexture(SDL_Texture* texture, int x, int y, double angle, double scale, bool center,  SDL_RendererFlip flip, SDL_Renderer* render); 
 	//old crappy draw texture which is boring and dumb
@@ -13,4 +14,9 @@ namespace util {
 	// slower, but better!
 
 	SDL_Texture* generateTexture(std::string path, SDL_Renderer* renderer);
+
+	std::vector<std::string> seperateWords(std::string string, char sep);
+	std::vector<std::string> seperateWords(std::string string, char sep, int);
+	std::string wrap(std::string str, int pixels);
+
 };
