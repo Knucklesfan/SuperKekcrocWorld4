@@ -104,20 +104,46 @@ int main(int argc, char* argv[])
         std::vector<std::string> words = {
             "@2Kekcroc:\n@0Hello World! I'm kekcroc, nice to meet you.",
             "@1Mario:\n@0Can you believe it? @4Christmas, just a week away",
-            "@2Kekcroc:\n@6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "@2Kekcroc:\n@0This is a very long text. How long? Extremely. Intentionally long, too. If I can't write long text, then what's even the point of being a programmer? Dude, imagine if text was long. There's no way it could be long, Kekcroc. But yeah, but what if it was long. DUUDE! long text is like, a foresaken art, only learned by the greatest of programmers. Yeah dude, this code is crap, there's no way that it can be considered being written by \"the greatest programmer of all time\" or anything lol",
             "@1Mario:\n@2Kekcroc, @0did you @3really @0have to @5break @0the text box @7like that?",
-            "@2Kekcroc:\n@0Yes."
+            "@2Kekcroc:\n@0Yes.",
+
         };
-        std::vector<std::string> otherwords = {
-        "Kekcroc:\n@0Hello World! I'm kekcroc, nice to meet you.",
-        "Mario:\nAs you can see, message boxes can have multiple potential messages!",
-        "Kekcroc:\nActually, the possibilities are endless to how many you can have.",
-        "Mario:\nWell, I guess..."
+        std::vector<std::vector<int>> def = {
+            {0,0,0},
+            {0,0,0},
+            {0,0,0},
+            {0,0,0},
+            {2,0,0},
         };
 
+        std::vector<std::string> otherwords = {
+            "@2What is your opinion on this game?\n@0   Yes.\n@1   No.\n@0   It's better than nothing.\n@0   Peanut Allergy.\n@0   Fifth Option.",
+            "Thanks for your answer.",
+            "I HATE YOU.",
+            "Least you were honest. Whats 9+10?\n@0   21.\n@0   19\n@3   obama",
+            "hehe nut hahah lmao.",
+            "Star Wars: Episode V - The Empire Strikes Back",
+            "you stupid.",
+            "What are you, a math teacher?",
+            "'bama"
+
+        };
+        std::vector<std::vector<int>> textmods = {
+            {1,1,2,3,4,5,5},
+            {2,0,0},
+            {2,0,0},
+            {1,6,7,8,3},
+            {2,0,0},
+            {2,0,0},
+            {2,0,0},
+            {2,0,0},
+            {2,0,0},
+
+        };
         font* fnt = new font("small8x8font", renderer);
         font* msgfnt = new font("dialoguefont", renderer);
-        message* msg = new message(renderer, "default", msgfnt, sounds,words, 72, 12, 240, 58);
+        message* msg = new message(renderer, "default", msgfnt, sounds,words, def, 72, 12, 240, 128);
         bg* backg = new bg("cavestory", false, renderer);
         SDL_Texture* kekcroc = util::generateTexture("./players/kekcroc/0.bmp",renderer);
         SDL_Event event;
@@ -137,11 +163,13 @@ int main(int argc, char* argv[])
                 if (event.type == SDL_KEYDOWN) {
                     msg->keyPressed(event.key.keysym.sym);
                     if (event.key.keysym.sym == SDLK_r) {
-                        msg->setText(otherwords);
+                        msg->drawhei = 128;
+                        msg->setText(otherwords, textmods);
                         msg->active = true;
                     }
                     if (event.key.keysym.sym == SDLK_e) {
-                        msg->setText(words);
+                        msg->drawhei = 58;
+                        msg->setText(words, def);
                         msg->active = true;
                     }
                 }

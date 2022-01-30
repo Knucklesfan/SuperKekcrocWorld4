@@ -565,6 +565,12 @@
         <char>}</char>
         <charwid>5</charwid>
     </letter>
+	<letter>
+        <posx>4</posx>
+        <posy>14</posy>
+        <char>*</char>
+        <charwid>15</charwid>
+    </letter>
 
 	
 	

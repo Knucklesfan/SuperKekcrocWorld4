@@ -83,7 +83,7 @@ std::string util::wrap(std::string str, int pixels) {
             count++;
         }
         currentpix += count*2;
-        std::cout << word << count*2 << "\n";
+        //std::cout << word << count*2 << "\n";
         if (currentline + word.length() > currentpix) {
             if (currentline > 0) {
                 currentpix = pixels;
@@ -127,4 +127,19 @@ std::vector<std::string> util::seperateWords(std::string string, char sep, int x
         }
         startindex = index + 1;
     }
+}
+int util::nthOccurrence(const std::string& str, const std::string& findMe, int nth)
+{
+    size_t  pos = 0;
+    int     cnt = 0;
+
+    while (cnt != nth)
+    {
+        pos += 1;
+        pos = str.find(findMe, pos);
+        if (pos == std::string::npos)
+            return -1;
+        cnt++;
+    }
+    return pos;
 }

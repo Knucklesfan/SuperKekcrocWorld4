@@ -18,5 +18,6 @@ namespace util {
 	std::vector<std::string> seperateWords(std::string string, char sep);
 	std::vector<std::string> seperateWords(std::string string, char sep, int);
 	std::string wrap(std::string str, int pixels);
+	int nthOccurrence(const std::string& str, const std::string& findMe, int nth);
 
 };

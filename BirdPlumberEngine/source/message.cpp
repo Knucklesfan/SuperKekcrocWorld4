@@ -11,7 +11,7 @@
 
 message::message() {};
 
-message::message(SDL_Renderer* renderer, std::string path, font* txt, std::vector<Mix_Chunk*> sound, std::vector<std::string> words, int drax, int dray, int drawid, int drahei) {
+message::message(SDL_Renderer* renderer, std::string path, font* txt, std::vector<Mix_Chunk*> sound, std::vector<std::string> words, std::vector<std::vector<int>> props, int drax, int dray, int drawid, int drahei) {
 
     std::string filepath = pth "sprites/messageboxes/" + path + "/";
     rapidxml::file<> xmlFile((filepath+"theme.xml").c_str());
@@ -32,18 +32,39 @@ message::message(SDL_Renderer* renderer, std::string path, font* txt, std::vecto
     drawwid = drawid;
     drawhei = drahei;
     drawheight = height;
-    setText(words);
+    setText(words, props);
 }
 
-void message::setText(std::vector<std::string> words) {
+void message::setText(std::vector<std::string> words, std::vector<std::vector<int>> props) {
     towrite.clear();
+    textsettings.clear();
+    int index = 0;
     for (std::string wrd : words) {
         std::vector<std::string> temp = util::seperateWords(wrd, '\n');
         std::string toadd = "";
         for (std::string ddd : temp) {
             toadd += util::wrap(ddd, drawwid / text->wordsize);
         }
-        towrite.push_back(toadd);
+        int count = 0;
+        for (int i = 0; (i = toadd.find('\n', i)) != std::string::npos; i++) {
+            count++;
+        }
+        if (count > drawhei / text->height) {
+            for (int i = 0; i < count / (drawhei/text->height) + count % (drawhei / text->height); i++) {
+                towrite.push_back(
+                    toadd.substr(
+                    util::nthOccurrence(toadd, "\n", (i) * (drawhei / text->height)) + (i>0?1:0),
+                    util::nthOccurrence(toadd, "\n", (i+1) * (drawhei / text->height)) - util::nthOccurrence(toadd, "\n", (i) *(drawhei / text->height))
+                ));
+                textsettings.push_back(props.at(index));
+            }
+            std::cout << count << "\n";
+        }
+        else {
+            textsettings.push_back(props.at(index));
+            towrite.push_back(toadd);
+        }
+        index++;
     }
 
 }
@@ -68,9 +89,13 @@ void message::render(SDL_Renderer* renderer) {
         util::drawTexture(renderer, sidetexture, drawx + i, drawy + height, 0, 1.0, false, SDL_FLIP_HORIZONTAL, 0, 0, width, 1, width, drawheight - height);
 
         text->render(renderer, onscrnwrds, drawx + 12, drawy + 8, false, 255, 255, 255);
-
         if (onscrnwrds.length() >= towrite[currentword].length()) {
-            util::drawTexture(renderer, bottomtexture, drawx + drawwid / 2, drawy + drawheight, 0, 1.0, false, SDL_FLIP_NONE, width * 2, 0, width, height);
+            if (textsettings[currentword][0] == textsettings::SELECT) {
+                text->render(renderer, "*", drawx + 12, drawy + text->height + 8 + text->height * dialogselect, false, 255, 255, 255);
+            }
+            else {
+                util::drawTexture(renderer, bottomtexture, drawx + drawwid / 2, drawy + drawheight, 0, 1.0, false, SDL_FLIP_NONE, width * 2, 0, width, height);
+            }
         }
     }
 }
@@ -109,17 +134,41 @@ void message::logic(double deltaTime) {
     }
 }
 void message::keyPressed(SDL_Keycode key) {
-    if (onscrnwrds.length() >= towrite[currentword].length()) {
-        if (currentword < towrite.size()-1) {
-            currentword++;
-            onscrnwrds = "";
-            Mix_PlayChannel(-1, sounds[0], 0);
+    switch (key) {
+        case SDLK_x: {
+            if (onscrnwrds.length() >= towrite[currentword].length()) {
+                if (currentword < towrite.size() - 1 && textsettings[currentword][0] != textsettings::END) {
+                    if (textsettings[currentword][0] == textsettings::SELECT) {
+                        currentword = textsettings[currentword][dialogselect + 1];
+                    }
+                    else {
+                        currentword++;
+                    }
+                    onscrnwrds = "";
+                    Mix_PlayChannel(-1, sounds[0], 0);
+                }
+                else {
+                    hide = true;
+                    currentword = 0;
+                    onscrnwrds = "";
+                    Mix_PlayChannel(-1, sounds[2], 0);
+                }
+            }
+            break;
         }
-        else {
-            hide = true;
-            currentword = 0;
-            onscrnwrds = "";
-            Mix_PlayChannel(-1, sounds[2], 0);
+        case SDLK_UP: {
+            if (textsettings[currentword][0] == textsettings::SELECT && dialogselect > 0) {
+                Mix_PlayChannel(-1, sounds[3], 0);
+                dialogselect--;
+            }
+            break;
+        }
+        case SDLK_DOWN: {
+            if (textsettings[currentword][0] == textsettings::SELECT && dialogselect < textsettings[currentword][textsettings[currentword].size() - 1]-1) {
+                Mix_PlayChannel(-1, sounds[3], 0);
+                dialogselect++;
+            }
+            break;
         }
 
     }

@@ -161,11 +161,11 @@ void bg::render(SDL_Renderer* renderer, bool layer) {
         if (layerposy[i] > 0) {
             multiplery = -1;
         }
-
-        drawTexture(renderer, textures[i], tempx, tempy, fmod(angle, 360), 1.0, true);
-        drawTexture(renderer, textures[i], tempx + (width * multiplerx), tempy + (height * multiplery), fmod(angle, 360), 1.0, true);
-        drawTexture(renderer, textures[i], tempx + 0, tempy + (height * multiplery), fmod(angle, 360), 1.0, true);
-        drawTexture(renderer, textures[i], tempx + (width * multiplerx), tempy, fmod(angle, 360), 1.0, true);
+        for (int a = 0; a < 3; a++) {
+            for (int x = 0; x < 3; x++) {
+                drawTexture(renderer, textures[i], tempx + ((width * multiplerx * x)), tempy + (height * multiplery * a), fmod(angle, 360), 1.0, true);
+            }
+        }
         }
 }
 void bg::logic(double deltatime)
