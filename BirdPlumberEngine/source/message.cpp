@@ -38,15 +38,10 @@ message::message(SDL_Renderer* renderer, std::string path, font* txt, std::vecto
 void message::setText(std::vector<std::string> words) {
     towrite.clear();
     for (std::string wrd : words) {
-        int count = 0;
-        for (int i = 0; (i = wrd.find('@', i)) != std::string::npos; i++) {
-            count++;
-        }
         std::vector<std::string> temp = util::seperateWords(wrd, '\n');
         std::string toadd = "";
         for (std::string ddd : temp) {
-            
-            toadd += util::wrap(ddd, drawwid / text->wordsize + count+1);
+            toadd += util::wrap(ddd, drawwid / text->wordsize);
         }
         towrite.push_back(toadd);
     }

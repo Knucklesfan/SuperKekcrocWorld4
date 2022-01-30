@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
             "@2Kekcroc:\n@0Yes."
         };
         std::vector<std::string> otherwords = {
-        "Kekcroc:\nThis is yet another test.",
+        "Kekcroc:\n@0Hello World! I'm kekcroc, nice to meet you.",
         "Mario:\nAs you can see, message boxes can have multiple potential messages!",
         "Kekcroc:\nActually, the possibilities are endless to how many you can have.",
         "Mario:\nWell, I guess..."

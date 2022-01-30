@@ -75,28 +75,32 @@ std::string util::wrap(std::string str, int pixels) {
     std::vector<std::string> words = seperateWords(str, ' ');
     int currentline = 0;
     std::string output = "";
-
+    int currentpix = pixels;
     for (int i = 0; i < words.size(); i++) {
         std::string word = words.at(i);
-        std::string modified = word;
-        if (currentline + word.length() > pixels) {
-            if (modified.find('@') < modified.length()) {
-                modified.erase(modified.find('@'), modified.find('@') + 2);
-            }
+        int count = 0;
+        for (int i = 0; (i = word.find('@', i)) != std::string::npos; i++) {
+            count++;
+        }
+        currentpix += count*2;
+        std::cout << word << count*2 << "\n";
+        if (currentline + word.length() > currentpix) {
             if (currentline > 0) {
+                currentpix = pixels;
                 output += "\n";
-                currentline = 0;
+                currentline = 1;
             }
-            while(word.length() > pixels) {
-                output += word.substr(0, pixels-1) + "";
-                word = word.substr(pixels-1);
+            while(word.length() > currentpix) {
+                currentpix = pixels;
+                output += word.substr(0, currentpix-1) + "";
+                word = word.substr(currentpix-1);
                 output += "\n";
             }
-            modified = modified.substr(modified.find_first_of(' ')+1);
+            word = word.substr(word.find_first_of(' ')+1);
             
         }
         output += word;
-        currentline += modified.length();
+        currentline += word.length();
     }
 
     return output;

@@ -119,7 +119,6 @@ void font::render(SDL_Renderer* renderer, std::string words, int x, int y, bool 
     int i = 0;
     for(char& c : words) {
         if (i >= 1 && words.at(i-1) == '@') {
-            std::cout << "skipping " << c << ". ";
             i++;
             continue;
         }
