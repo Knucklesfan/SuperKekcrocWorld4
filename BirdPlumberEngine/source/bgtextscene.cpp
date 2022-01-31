@@ -9,6 +9,7 @@ bgtextscene::bgtextscene(SDL_Renderer* render, std::vector<SDL_Texture*> texture
 	sounds = snds;
 	fonts = font;
 	msg = new message(render, "default", fonts[0], sounds, words, params, 72, 12, 240, 58);
+	msg->loadFromFile("example/first.xml", false);
 	currentbg = 0;
 	ticks = 0;
 	transitionalpha = 1.0;
@@ -29,7 +30,7 @@ void bgtextscene::logic(double deltatime) {
 
 	backgrounds[currentbg]->logic(deltatime);
 	msg->logic(deltatime);
-	if (ticks >= 10000) {
+	if (ticks >= 2500) {
 		msg->active = true;
 	}
 	if (transitionalpha > 0.0 && down) {

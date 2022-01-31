@@ -11,6 +11,10 @@
 #include "scene.h"
 #include "bgtextscene.h"
 
+#define CUTE_TILED_IMPLEMENTATION
+#include <cute_tiled.h>
+
+#include "level.h"
 #define SCREEN_WIDTH 400
 #define SCREEN_HEIGHT 224
 
@@ -191,7 +195,7 @@ int main(int argc, char* argv[])
         float deltaTime = 0;
         next_time = SDL_GetTicks() + TICK_INTERVAL;
         double _fps = 0;
-        scene* scn = new bgtextscene(renderer, textures, backgs, sounds, fnts );
+        scene* scn = new level(renderer,"./levels/testlevels/", backgs[0], fnts[1]);
         while (!quit) {
             auto t1 = std::chrono::high_resolution_clock::now();
             while (SDL_PollEvent(&event)) {

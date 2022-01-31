@@ -34,7 +34,6 @@ message::message(SDL_Renderer* renderer, std::string path, font* txt, std::vecto
     drawheight = height;
     setText(words, props);
 }
-
 void message::setText(std::vector<std::string> words, std::vector<std::vector<int>> props) {
     towrite.clear();
     textsettings.clear();
@@ -69,6 +68,52 @@ void message::setText(std::vector<std::string> words, std::vector<std::vector<in
 
 }
 
+
+//im just now realizing that 99% of the code that i write for this, i just copy from other places in the same code. Is programming like chipping away at a block of gravel or something?
+//wait, im just now realizing i dont know what gravel even is
+//what is gravel?
+//TODO: find out what gravel is
+
+void message::loadFromFile(std::string file, bool folder) {
+    std::vector<std::string> words;
+    std::vector<std::vector<int>> props;
+    std::string path = "./text/" + file;
+    rapidxml::file<> xmlFile(path.c_str());
+    rapidxml::xml_document<> doc;
+    doc.parse<0>(xmlFile.data());
+    rapidxml::xml_node<char>* parent = doc.first_node("dialogues");
+    for (rapidxml::xml_node<char>* child = parent->first_node(); child != NULL; child = child->next_sibling()) {
+        std::string temp = child->value();
+        
+        words.push_back(temp);
+        int type = atoi(child->first_attribute("msgtype")->value());
+        std::vector<int> vec;
+        vec.push_back(type);
+        switch(type) {
+            case textsettings::SELECT: {
+                int count = atoi(child->first_attribute("size")->value());
+                for(int i = 0; i < count; i++) {
+                    std::cout << i << "\n";
+                    std::string connect = "msg";
+                    connect+=std::to_string(i);
+                    int var = atoi(child->first_attribute(connect.c_str())->value());
+                    vec.push_back(var);
+                }
+                vec.push_back(count);
+            }
+        }
+        std::cout << "{";
+        for(int xd : vec) {
+            std::cout << xd << ", ";
+        }
+        std::cout << "}\n";
+        props.push_back(vec);
+
+    }
+    std:: cout << words.size() << "\n";
+    setText(words,props);
+}
+
 void message::render(SDL_Renderer* renderer) {
     if (active) {
         util::drawTexture(renderer, filltexture, drawx + width, drawy + height, 0, 1.0, false, SDL_FLIP_NONE, 0, 0, 1, 1, drawwid - width, drawheight - height);
@@ -100,7 +145,7 @@ void message::render(SDL_Renderer* renderer) {
     }
 }
 void message::logic(double deltaTime) {
-    if (active) {
+    if (active && !paused) {
 
         if (!expand || hide) {
             if (hide) {
@@ -133,27 +178,12 @@ void message::logic(double deltaTime) {
         }
     }
 }
-void message::keyPressed(SDL_Keycode key) {
+int message::keyPressed(SDL_Keycode key) {
     if (active) {
         switch (key) {
         case SDLK_x: {
             if (onscrnwrds.length() >= towrite[currentword].length()) {
-                if (currentword < towrite.size() - 1 && textsettings[currentword][0] != textsettings::END) {
-                    if (textsettings[currentword][0] == textsettings::SELECT) {
-                        currentword = textsettings[currentword][dialogselect + 1];
-                    }
-                    else {
-                        currentword++;
-                    }
-                    onscrnwrds = "";
-                    Mix_PlayChannel(-1, sounds[0], 0);
-                }
-                else {
-                    hide = true;
-                    currentword = 0;
-                    onscrnwrds = "";
-                    Mix_PlayChannel(-1, sounds[2], 0);
-                }
+                return runMsgScript(textsettings[currentword][0]);
             }
             break;
         }
@@ -173,5 +203,30 @@ void message::keyPressed(SDL_Keycode key) {
         }
 
         }
+    }
+}
+
+int message::runMsgScript(int type) {
+    switch(type) {
+        case 2: {
+            hide = true;
+            currentword = 0;
+            onscrnwrds = "";
+            Mix_PlayChannel(-1, sounds[2], 0);
+            break;
+        }
+        case textsettings::SELECT: {
+            currentword = textsettings[currentword][dialogselect + 1];
+            onscrnwrds = "";
+            Mix_PlayChannel(-1, sounds[0], 0);
+            break;
+        }
+        default: {
+            currentword++;
+            onscrnwrds = "";
+            Mix_PlayChannel(-1, sounds[0], 0);
+            break;
+        }
+
     }
 }

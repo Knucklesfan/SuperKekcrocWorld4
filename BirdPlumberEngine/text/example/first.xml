@@ -1,0 +1,13 @@
+<dialogues>
+    <message msgtype="0">@2Kekcroc:
+@0Hello World!</message>
+    <message msgtype="0">@1Mario:
+@0Hey @2Kekcroc@0, what's 9+10?</message>
+    <message msgtype="1" size="2" msg0="3" msg1="4">Whats 9 plus 10?
+   19.
+   21.</message>
+          <message msgtype="2">@1Mario:
+@0What are you, @5a math teacher?</message>
+       <message msgtype="2">@1Mario:
+@0you stupid.</message>
+</dialogues>

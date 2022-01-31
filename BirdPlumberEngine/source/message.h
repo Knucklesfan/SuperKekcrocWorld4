@@ -15,9 +15,12 @@ class message {
         message();
         message(SDL_Renderer* renderer, std::string path, font* txt, std::vector<Mix_Chunk*> sound, std::vector<std::string>, std::vector<std::vector<int>> props, int drax, int dray, int drawid, int drahei);
         void render(SDL_Renderer* renderer);
+        void loadFromFile(std::string file, bool folder);
         void logic(double deltaTime);
-        void keyPressed(SDL_Keycode key);
+        int keyPressed(SDL_Keycode key);
         void setText(std::vector<std::string> words, std::vector<std::vector<int>>);
+        int runMsgScript(int);
+        
         bool active = false;
         bool expand = false;
         bool hide = false;
@@ -29,6 +32,7 @@ class message {
         int drawheight = 0;
         bool doanimation = false;
         bool doblip = false;
+        bool paused = false;
         std::vector<std::string> towrite;
         std::string onscrnwrds;
         std::vector<std::vector<int>> textsettings;
