@@ -1,2 +1,4 @@
-<bgs>1</bgs>
-<bg0>cavestory</bg0>
+<backgrounds>
+	<background>grids</background>
+	<background>cavestory</background>
+</backgrounds>

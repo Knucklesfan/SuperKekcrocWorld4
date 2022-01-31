@@ -8,6 +8,8 @@
 #include "util.h"
 #include "message.h"
 #include <chrono>
+#include "scene.h"
+#include "bgtextscene.h"
 
 #define SCREEN_WIDTH 400
 #define SCREEN_HEIGHT 224
@@ -85,22 +87,59 @@ int main(int argc, char* argv[])
 
         std::vector<font*> fnts;
         std::vector<Mix_Chunk*> sounds;
-        rapidxml::file<> xmlFile("./sounds/sounds.xml");
-        rapidxml::xml_document<> doc;
-        doc.parse<0>(xmlFile.data());
-        rapidxml::xml_node<char>* parent = doc.first_node("sounds");
-        for (rapidxml::xml_node<char>* child = parent->first_node(); child != NULL; child = child->next_sibling()) {
-            std::string path = "./sounds/";
-            path += child->value();
-            Mix_Chunk* temp = Mix_LoadWAV(path.c_str());
-            if (!temp) {
-                printf("Failed to load sound at %s: %s\n", path, SDL_GetError());
-                return 0;
-            }
-            sounds.push_back(temp);
-            printf("Successfully loaded sound at %s\n", path.c_str());
+        std::vector<bg*> backgs;
+        std::vector<SDL_Texture*> textures;
+        {
+            rapidxml::file<> xmlFile("./sounds/sounds.xml");
+            rapidxml::xml_document<> doc;
+            doc.parse<0>(xmlFile.data());
+            rapidxml::xml_node<char>* parent = doc.first_node("sounds");
+            for (rapidxml::xml_node<char>* child = parent->first_node(); child != NULL; child = child->next_sibling()) {
+                std::string path = "./sounds/";
+                path += child->value();
+                Mix_Chunk* temp = Mix_LoadWAV(path.c_str());
+                if (!temp) {
+                    printf("Failed to load sound at %s: %s\n", path, SDL_GetError());
+                    return 0;
+                }
+                sounds.push_back(temp);
+                printf("Successfully loaded sound at %s\n", path.c_str());
 
+            }
         }
+        {
+            rapidxml::file<> xmlFile("./fonts/fonts.xml");
+            rapidxml::xml_document<> doc;
+            doc.parse<0>(xmlFile.data());
+            rapidxml::xml_node<char>* parent = doc.first_node("fonts");
+            for (rapidxml::xml_node<char>* child = parent->first_node(); child != NULL; child = child->next_sibling()) {
+                font* temp = new font(child->value(), renderer);
+                if (!temp) {
+                    printf("Failed to load font at %s: %s\n", child->value(), SDL_GetError());
+                    return 0;
+                }
+                fnts.push_back(temp);
+                printf("Successfully loaded font at %s\n", child->value());
+
+            }
+        }
+        {
+            rapidxml::file<> xmlFile("./backgrounds/backgrounds.xml");
+            rapidxml::xml_document<> doc;
+            doc.parse<0>(xmlFile.data());
+            rapidxml::xml_node<char>* parent = doc.first_node("backgrounds");
+            for (rapidxml::xml_node<char>* child = parent->first_node(); child != NULL; child = child->next_sibling()) {
+                bg* temp = new bg(child->value(), false, renderer);
+                if (!temp) {
+                    printf("Failed to load font at %s: %s\n", child->value(), SDL_GetError());
+                    return 0;
+                }
+                backgs.push_back(temp);
+                printf("Successfully loaded font at %s\n", child->value());
+            }
+        }
+
+
         std::vector<std::string> words = {
             "@2Kekcroc:\n@0Hello World! I'm kekcroc, nice to meet you.",
             "@1Mario:\n@0Can you believe it? @4Christmas, just a week away",
@@ -141,53 +180,39 @@ int main(int argc, char* argv[])
             {2,0,0},
 
         };
-        font* fnt = new font("small8x8font", renderer);
-        font* msgfnt = new font("dialoguefont", renderer);
-        message* msg = new message(renderer, "default", msgfnt, sounds,words, def, 72, 12, 240, 128);
-        bg* backg = new bg("cavestory", false, renderer);
         SDL_Texture* kekcroc = util::generateTexture("./players/kekcroc/0.bmp",renderer);
         SDL_Event event;
         bool quit = false;
         Uint64 NOW = SDL_GetPerformanceCounter();
         Uint64 LAST = 0;
         double deltaTime = 0;
-        next_time = SDL_GetTicks() + TICK_INTERVAL;
+        double next_time = SDL_GetTicks() + TICK_INTERVAL;
         auto t1 = std::chrono::high_resolution_clock::now();
         double _fps = 0;
-
+        scene* scn = new bgtextscene(renderer, textures, backgs, sounds, fnts );
         while (!quit) {
             while (SDL_PollEvent(&event)) {
                 if (event.type == SDL_QUIT) {
                     quit = true;
                 }
                 if (event.type == SDL_KEYDOWN) {
-                    msg->keyPressed(event.key.keysym.sym);
-                    if (event.key.keysym.sym == SDLK_r) {
-                        msg->drawhei = 128;
-                        msg->setText(otherwords, textmods);
-                        msg->active = true;
-                    }
-                    if (event.key.keysym.sym == SDLK_e) {
-                        msg->drawhei = 58;
-                        msg->setText(words, def);
-                        msg->active = true;
-                    }
+                    scn->keyPressed(event.key.keysym.sym);
                 }
             }
 
             LAST = NOW;
             NOW = SDL_GetPerformanceCounter();
             deltaTime = (double)((NOW - LAST) * 1000 / (double)SDL_GetPerformanceFrequency());
-            backg->logic(deltaTime);
             SDL_SetRenderTarget(renderer, rendertext);
             SDL_RenderClear(renderer);
 
-            backg->render(renderer, false);
-            fnt->render(200, 112, "KEKCROC WORLD 4", true, renderer);
-            fnt->render(200, 128, "DEVELOPED BY KNUXFAN", true, renderer);
-            util::drawTexture(kekcroc, 200, 180, 0, 1.0, false,SDL_FLIP_NONE, renderer);
-            msg->render(renderer);
-            msg->logic(deltaTime);
+
+            scn->logic(deltaTime);
+            scn->render(renderer);
+
+
+
+
             SDL_SetRenderTarget(renderer, NULL);
             SDL_RenderClear(renderer);
 

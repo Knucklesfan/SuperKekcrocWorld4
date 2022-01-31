@@ -30,6 +30,9 @@
     <ClCompile Include="source\message.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\bgtextscene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\background.h">
@@ -42,6 +45,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\message.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\bgtextscene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\background.cpp" />
+    <ClCompile Include="source\bgtextscene.cpp" />
     <ClCompile Include="source\font.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\message.cpp" />
@@ -153,8 +154,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\background.h" />
+    <ClInclude Include="source\bgtextscene.h" />
     <ClInclude Include="source\font.h" />
     <ClInclude Include="source\message.h" />
+    <ClInclude Include="source\scene.h" />
     <ClInclude Include="source\util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

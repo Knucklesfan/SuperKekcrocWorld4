@@ -20,9 +20,8 @@
 
 bg::bg() {}
 bg::bg(std::string path, bool folder, SDL_Renderer* renderer) {
-
     std::string filepath = pth "backgrounds/" + path + "/theme.xml";
-    if(folder) {
+    if (folder) {
         filepath = path + "/theme.xml";
     }
 
@@ -32,13 +31,13 @@ bg::bg(std::string path, bool folder, SDL_Renderer* renderer) {
     layers = atoi(doc.first_node("layers")->value());
 
     std::string p = pth "backgrounds/" + path;
-    if(folder) {
+    if (folder) {
         p = path;
     }
-    
+
     generateSurfaces(p, renderer); //DOES THIS CODE EVEN WORK??? WHOOOO KNOWWWSSS?!?!?!?!
 
-    
+
     name = doc.first_node("name")->value();
     creator = doc.first_node("creator")->value();
     vers = doc.first_node("vers")->value();
@@ -49,6 +48,15 @@ bg::bg(std::string path, bool folder, SDL_Renderer* renderer) {
     if (doc.first_node("rotation") != NULL) {
         rotation = atoi(doc.first_node("rotation")->value());
     }
+    if (doc.first_node("sine") != NULL) {
+        sine = true;
+        sinelayer = atoi(doc.first_node("sine")->value());
+        snheight = atoi(doc.first_node("sineheight")->value());
+        snwidth = atoi(doc.first_node("sinewidth")->value());
+        snwid = atoi(doc.first_node("sinelayerheight")->value()); \
+            rate = atoi(doc.first_node("sinerate")->value());
+    }
+
 
     if (doc.first_node("fglayer") != NULL) {
         std::cout << "fglayer detected\n";
@@ -68,7 +76,7 @@ bg::bg(std::string path, bool folder, SDL_Renderer* renderer) {
 
     int array[10];
     std::cout << "LAYERS: " << layers;
-    for(int i = 0; i < layers; i++) {
+    for (int i = 0; i < layers; i++) {
 
         std::string sr = "layer";
         sr += std::to_string(i);
@@ -82,7 +90,7 @@ bg::bg(std::string path, bool folder, SDL_Renderer* renderer) {
     }
 
     std::string muspath = pth "backgrounds/" + path + "/";
-    if(folder) {
+    if (folder) {
         muspath = path + "/";
     }
 
@@ -98,7 +106,7 @@ bg::bg(std::string path, bool folder, SDL_Renderer* renderer) {
 
 void  bg::generateSurfaces(std::string path, SDL_Renderer* renderer) {
     std::vector<SDL_Surface*> surfaces;
-    for(int i = 0; i < layers; i++) {
+    for (int i = 0; i < layers; i++) {
         char buff[12];
         snprintf(buff, sizeof(buff), "%02d", i);
         std::string temppath = path + "/" + buff + ".bmp";
@@ -112,7 +120,7 @@ void  bg::generateSurfaces(std::string path, SDL_Renderer* renderer) {
     }
     for (SDL_Surface* surf : surfaces) {
         SDL_Texture* temp = SDL_CreateTextureFromSurface(renderer, surf);
-        if(temp != NULL) {
+        if (temp != NULL) {
             textures.push_back(temp);
             printf("pushed texture!!");
             SDL_FreeSurface(surf);
@@ -161,29 +169,27 @@ void bg::render(SDL_Renderer* renderer, bool layer) {
         if (layerposy[i] > 0) {
             multiplery = -1;
         }
-        for (int a = 0; a < 3; a++) {
-            for (int x = 0; x < 3; x++) {
-                drawTexture(renderer, textures[i], tempx + ((width * multiplerx * x)), tempy + (height * multiplery * a), fmod(angle, 360), 1.0, true);
-            }
-        }
-        }
+        bool dothis = sine && i == sinelayer;
+        drawLayer(renderer, textures[i], tempx, tempy, multiplerx, multiplery, width, height,
+            dothis,
+            snwid, //wave width in pixels
+            snwidth, //sine width
+            snheight, //sine height
+            angle //increment. 
+        );
+    }
 }
 void bg::logic(double deltatime)
 {
-    if (angle > 360.0) {
-        angle = 0.0;
-    }
-    if (rotation != 0) {
-        angle += deltatime / rotation;
-    }
+    angle += deltatime / rate;
     //std::cout << angle << "\n";
 
-    for(int i = 0; i < layers; i++) {
-        if(incrementsx[i] != 0) {
-            layerposx[i] -= (deltatime)/(incrementsx[i]);
+    for (int i = 0; i < layers; i++) {
+        if (incrementsx[i] != 0) {
+            layerposx[i] -= (deltatime) / (incrementsx[i]);
         }
-        if(incrementsy != 0) {
-            layerposy[i] -= (deltatime)/(incrementsy[i]);
+        if (incrementsy != 0) {
+            layerposy[i] -= (deltatime) / (incrementsy[i]);
         }
 
     }
@@ -191,7 +197,7 @@ void bg::logic(double deltatime)
 
 void bg::drawTexture(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y, double angle, double scale, bool center) {
     SDL_Rect sprite;
-    if(SDL_QueryTexture(texture, NULL, NULL, &sprite.w, &sprite.h) < 0) {
+    if (SDL_QueryTexture(texture, NULL, NULL, &sprite.w, &sprite.h) < 0) {
         printf("TEXTURE ISSUES!!! \n");
         std::cout << SDL_GetError() << "\n";
     };
@@ -210,6 +216,36 @@ void bg::drawTexture(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y,
     SDL_RenderCopyEx(renderer, texture, NULL, &sprite, 0, NULL, SDL_FLIP_NONE);
 }
 
+//lol i stole more code from font.h
+//I had this great idea for doing waves through like modifying pixel data, and then I realized "oh crap, that'll use up way too much GPU to handle"
+
+//so then i cried
+
+void bg::drawTexture(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y, double angle, double scale, bool center, int srcx, int srcy, int srcw, int srch) {
+    SDL_Rect sprite;
+    SDL_Rect srcrect = { srcx, srcy, srcw, srch };
+    if (SDL_QueryTexture(texture, NULL, NULL, &sprite.w, &sprite.h) < 0) {
+        printf("TEXTURE ISSUES!!! \n");
+        std::cout << SDL_GetError() << "\n";
+    };
+    sprite.w = srcw * scale;
+    sprite.h = srch * scale;
+    if (center) {
+        sprite.x = x - srcw / 2;
+        sprite.y = y - srch / 2;
+    }
+    else {
+        sprite.x = x + srcw / 2 - sprite.w / 2;
+        sprite.y = y + srch / 2 - sprite.h / 2;
+    }
+    SDL_RenderCopy(renderer, texture, &srcrect, &sprite);
+    //since the angle system doesnt even work
+    //BUT I SWEAR GUYS ILL GET IT TO WORK EVENTUALLY
+}
+//anyways so that's the new and totally awesome relevant modern new background system thing that everyone definitely loves
+
+
+
 bool bg::hasEnding(std::string const& fullString, std::string const& ending) { //thank you kdt on Stackoverflow, its late at night and you helped me out https://stackoverflow.com/questions/874134/find-out-if-string-ends-with-another-string-in-c
     if (fullString.length() >= ending.length()) {
         return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
@@ -218,3 +254,26 @@ bool bg::hasEnding(std::string const& fullString, std::string const& ending) { /
         return false;
     }
 }
+void bg::drawLayer(SDL_Renderer* renderer, SDL_Texture* texture, int tempx, int tempy, int multiplerx, int multiplery, int width, int height, bool wavy, int wavywidth, int sinewidth, int sineheight, double sinepos) {
+    if (wavy) {
+        for (int i = 0; i < height; i += wavywidth) {
+            double sinex = (sin((sinepos + i) * sinewidth) * sineheight);
+
+            drawTexture(renderer, texture, tempx + sinex, (tempy + i), fmod(angle, 360), 1.0, false, 0, i, width, wavywidth);
+
+            drawTexture(renderer, texture, tempx + sinex + (width * multiplerx), (tempy + i) + (height * multiplery), fmod(angle, 360), 1.0, false, 0, i, width, wavywidth);
+
+            drawTexture(renderer, texture, tempx + sinex, (tempy + i) + (height * multiplery), fmod(angle, 360), 1.0, false, 0, i, width, wavywidth);
+
+            drawTexture(renderer, texture, tempx + sinex + (width * multiplerx), tempy + i, fmod(angle, 360), 1.0, false, 0, i, width, wavywidth);
+        }
+    }
+    else {
+        drawTexture(renderer, texture, tempx, tempy, fmod(angle, 360), 1.0, false);
+        drawTexture(renderer, texture, tempx + (width * multiplerx), tempy + (height * multiplery), fmod(angle, 360), 1.0, false);
+        drawTexture(renderer, texture, tempx + 0, tempy + (height * multiplery), fmod(angle, 360), 1.0, false);
+        drawTexture(renderer, texture, tempx + (width * multiplerx), tempy, fmod(angle, 360), 1.0, false);
+    }
+
+}
+

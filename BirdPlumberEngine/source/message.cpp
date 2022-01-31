@@ -134,7 +134,8 @@ void message::logic(double deltaTime) {
     }
 }
 void message::keyPressed(SDL_Keycode key) {
-    switch (key) {
+    if (active) {
+        switch (key) {
         case SDLK_x: {
             if (onscrnwrds.length() >= towrite[currentword].length()) {
                 if (currentword < towrite.size() - 1 && textsettings[currentword][0] != textsettings::END) {
@@ -164,12 +165,13 @@ void message::keyPressed(SDL_Keycode key) {
             break;
         }
         case SDLK_DOWN: {
-            if (textsettings[currentword][0] == textsettings::SELECT && dialogselect < textsettings[currentword][textsettings[currentword].size() - 1]-1) {
+            if (textsettings[currentword][0] == textsettings::SELECT && dialogselect < textsettings[currentword][textsettings[currentword].size() - 1] - 1) {
                 Mix_PlayChannel(-1, sounds[3], 0);
                 dialogselect++;
             }
             break;
         }
 
+        }
     }
 }
