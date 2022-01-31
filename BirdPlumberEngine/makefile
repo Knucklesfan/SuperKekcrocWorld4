@@ -1,5 +1,5 @@
-OBJS	= background.o font.o main.o util.o message.o
-SOURCE	= source/background.cpp source/font.cpp source/main.cpp source/util.cpp source/message.cpp
+OBJS	= background.o font.o main.o util.o message.o bgtextscene.o
+SOURCE	= source/background.cpp source/font.cpp source/main.cpp source/util.cpp source/message.cpp source/bgtextscene.cpp
 HEADER	= 
 OUT	= skw
 CC	 = g++
@@ -18,7 +18,10 @@ message.o: source/message.cpp
 	$(CC) $(FLAGS) source/message.cpp 
 font.o: source/font.cpp
 	$(CC) $(FLAGS) source/font.cpp 
-
+	
+bgtextscene.o: source/bgtextscene.cpp
+	$(CC) $(FLAGS) source/bgtextscene.cpp 
+	
 main.o: source/main.cpp
 	$(CC) $(FLAGS) source/main.cpp 
 

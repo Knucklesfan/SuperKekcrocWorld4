@@ -13,6 +13,7 @@
 
 #define SCREEN_WIDTH 400
 #define SCREEN_HEIGHT 224
+
 #define TICK_INTERVAL    7
 
 static Uint32 next_time;
@@ -22,11 +23,13 @@ Uint32 time_left(void)
     Uint32 now;
 
     now = SDL_GetTicks();
-    if (next_time <= now)
+    if(next_time <= now)
         return 0;
     else
         return next_time - now;
 }
+
+
 
 //so like, i totally didnt just absolutely copy nearly everything from Knuxfan's Tetriminos because i'm lazy, noo that'd be stupid lol
 
@@ -185,12 +188,12 @@ int main(int argc, char* argv[])
         bool quit = false;
         Uint64 NOW = SDL_GetPerformanceCounter();
         Uint64 LAST = 0;
-        double deltaTime = 0;
-        double next_time = SDL_GetTicks() + TICK_INTERVAL;
-        auto t1 = std::chrono::high_resolution_clock::now();
+        float deltaTime = 0;
+        next_time = SDL_GetTicks() + TICK_INTERVAL;
         double _fps = 0;
         scene* scn = new bgtextscene(renderer, textures, backgs, sounds, fnts );
         while (!quit) {
+            auto t1 = std::chrono::high_resolution_clock::now();
             while (SDL_PollEvent(&event)) {
                 if (event.type == SDL_QUIT) {
                     quit = true;
