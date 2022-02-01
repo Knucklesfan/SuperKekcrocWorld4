@@ -28,8 +28,9 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
         cute_tiled_object_t* object = layer->objects;
 		// do something with the tile data
         while (object) {
-                std::cout << "PLAYER";
-                objects.push_back(new Player(object->x,object->y,NULL,render));
+            if (!strcmp(object->type.ptr, "Player")) {
+                player = new Player(object->x, object->y, nullptr, render);
+            }
             object = object->next;
         }
         for(int i = 0; i < data_count; i++) {
@@ -75,6 +76,9 @@ void level::render(SDL_Renderer* render) {
 
 }
 void level::logic(double deltaTime) {
+    if (player != nullptr) {
+        player->logic(deltaTime);
+    }
     for (GameObject* object : objects) {
         object->logic(deltaTime);
         std::cout << object->getx() << ", " << object->gety() << "\n";

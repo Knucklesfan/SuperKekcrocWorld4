@@ -24,5 +24,5 @@ class level : public scene {
         void keyPressed(SDL_Keycode);
         int viewx = 0;
         int viewy = 0;
-
+        Player* player;
 };

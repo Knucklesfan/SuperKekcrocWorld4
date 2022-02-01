@@ -1,7 +1,7 @@
 #pragma once
 #include "GameObject.h"
 #include "util.h"
-class Player : public GameObject
+class Player
 {
 	public:
 		int type = object::PLAYER;
