@@ -229,4 +229,5 @@ int message::runMsgScript(int type) {
         }
 
     }
+    return 0;
 }

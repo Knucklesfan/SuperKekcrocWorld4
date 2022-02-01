@@ -11,6 +11,7 @@
 #include "scene.h"
 #include "bgtextscene.h"
 
+#define _CRT_SECURE_NO_DEPRECATE
 #define CUTE_TILED_IMPLEMENTATION
 #include <cute_tiled.h>
 
@@ -42,7 +43,7 @@ Uint32 time_left(void)
 int main(int argc, char* argv[])
 {
         srand((unsigned)time(0));
-
+        SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
         if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) != 0) {
             std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 
@@ -195,7 +196,8 @@ int main(int argc, char* argv[])
         float deltaTime = 0;
         next_time = SDL_GetTicks() + TICK_INTERVAL;
         double _fps = 0;
-        scene* scn = new level(renderer,"./levels/testlevels/", backgs[0], fnts[1]);
+        //scene* scn = new bgtextscene(renderer, textures, backgs, sounds, fnts);
+        scene* scn = new level(renderer,"./levels/testlevels/", backgs.at(0), fnts[0]);
         while (!quit) {
             auto t1 = std::chrono::high_resolution_clock::now();
             while (SDL_PollEvent(&event)) {

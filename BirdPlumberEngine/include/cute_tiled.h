@@ -100,6 +100,9 @@
 			void* uncompressed_data = zlib_uncompress(path_to_zipped_map_file, &size);
 			cute_tiled_map_t* map = cute_tiled_load_map_from_memory(uncompressed_data, size, 0);
 */
+#ifdef _WIN32
+#define _CRT_SECURE_NO_DEPRECATE
+#endif
 
 #if !defined(CUTE_TILED_H)
 

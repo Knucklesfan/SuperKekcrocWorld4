@@ -46,7 +46,7 @@ public:
 class font
 {
 	public:
-        const color colors[10] = {
+        color colors[10] = {
             color(255,255,255),
             color(255,0,0), //1
             color(0,255,0), //2
