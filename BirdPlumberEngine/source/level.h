@@ -10,7 +10,7 @@
 #include "background.h"
 #include "util.h"
 #include "font.h"
-#include "Player.h"
+#include "player.h"
 
 class level : public scene {
     public:

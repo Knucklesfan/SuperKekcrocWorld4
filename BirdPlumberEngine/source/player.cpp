@@ -1,4 +1,4 @@
-#include "Player.h"
+#include "player.h"
 
 Player::Player(int xa, int ya, SDL_Texture* sheet, SDL_Renderer* render) {
     type = object::PLAYER;
@@ -16,21 +16,30 @@ void Player::logic(double deltaTime) {
     std::cout << "(" << x << "," << y << ")\n";
     const Uint8* state = SDL_GetKeyboardState(NULL);
     if (state[SDL_SCANCODE_UP]) {
-        y -= 1;
+        yvelocity = -1;
     }
-    if (state[SDL_SCANCODE_DOWN]) {
-        y += 1;
+    else if (state[SDL_SCANCODE_DOWN]) {
+        yvelocity = 1;
     }
+    else {
+        yvelocity -= deltaTime/500;
+    }
+
     if (state[SDL_SCANCODE_RIGHT]) {
-        x += 1;
+        xvelocity = 1;
     }
-    if (state[SDL_SCANCODE_LEFT]) {
-        x -= 1;
+    else if (state[SDL_SCANCODE_LEFT]) {
+        xvelocity = -1;
+    }
+    else {
+        xvelocity -= deltaTime/500;
     }
 
 }
 
-
+void Player::physics(double deltatime, std::vector<int> colliders) {
+    
+}
 int Player::getx() {
     return x;
 }

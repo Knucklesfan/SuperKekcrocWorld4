@@ -14,5 +14,7 @@ class Player
 		int getx();
 		int gety();
 		int gettype();
+		double xvelocity;
+		double yvelocity;
 };
 

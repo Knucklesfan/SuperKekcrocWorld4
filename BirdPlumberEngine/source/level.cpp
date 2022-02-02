@@ -72,23 +72,24 @@ void level::render(SDL_Renderer* render) {
     text += " ";
     text += std::to_string(viewy);
     //std::cout << text << "\n";
+    if(player != nullptr) {
+        player->render(render, viewx, viewy);
+    }
     debugfont->render(8,8,text,false, render);
 
 }
 void level::logic(double deltaTime) {
     if (player != nullptr) {
         player->logic(deltaTime);
+        float lerp = 0.1f;
+        viewx = -(player->getx() - 200);
+        viewy = -(player->gety() - 120);
     }
     for (GameObject* object : objects) {
         object->logic(deltaTime);
         std::cout << object->getx() << ", " << object->gety() << "\n";
         //viewx = object->getx()+200;
         //viewy = object->gety()+120;
-        if (object->gettype() == object::PLAYER) {
-            float lerp = 0.1f;
-            viewx = -(object->getx() - 200);
-            viewy = -(object->gety() - 120) ;
-        }
     }
 
     
