@@ -385,7 +385,8 @@ CUTE_C2_API float c2GJK(const void* A, C2_TYPE typeA, const c2x* ax_ptr, const v
 //    See the function `c2Inflate` for some more details.
 // 4. Compute the collision manifold between the inflated shapes (for example, use c2PolytoPolyManifold).
 // 5. Gently push the shapes apart. This will give the next call to c2TOI some breathing room.
-float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void* B, C2_TYPE typeB, const c2x* bx_ptr, c2v vB, int use_radius, c2v* out_normal, c2v* out_contact_point, int* iterations);
+CUTE_C2_API float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void* B, C2_TYPE typeB, const c2x* bx_ptr, c2v vB, int use_radius, int* iterations);
+
 // Inflating a shape.
 //
 // This is useful to numerically grow or shrink a polytope. For example, when calling
@@ -1081,7 +1082,7 @@ static C2_INLINE float c2Step(float t, const void* A, C2_TYPE typeA, const c2x* 
 	return d;
 }
 
-float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void* B, C2_TYPE typeB, const c2x* bx_ptr, c2v vB, int use_radius, c2v* out_normal, c2v* out_contact_point, int* iterations)
+float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void* B, C2_TYPE typeB, const c2x* bx_ptr, c2v vB, int use_radius, int* iterations)
 {
 	float t = 0;
 	c2x ax;
@@ -1090,36 +1091,31 @@ float c2TOI(const void* A, C2_TYPE typeA, const c2x* ax_ptr, c2v vA, const void*
 	else ax = *ax_ptr;
 	if (!bx_ptr) bx = c2xIdentity();
 	else bx = *bx_ptr;
-	c2v a, b, n;
+	c2v a, b;
 	c2GJKCache cache;
 	cache.count = 0;
 	float d = c2Step(t, A, typeA, &ax, vA, &a, B, typeB, &bx, vB, &b, use_radius, &cache);
 	c2v v = c2Sub(vB, vA);
-	n = c2SafeNorm(c2Sub(b, a));
 
-	int iter = 0;
-	while (d > 1.0e-5f && t < 1)
+	int iters = 0;
+	float eps = 1.0e-6f;
+	while (d > eps && t < 1)
 	{
-		++iter;
+		++iters;
 		float velocity_bound = c2Abs(c2Dot(c2Norm(c2Sub(b, a)), v));
 		if (!velocity_bound) return 1;
 		float delta = d / velocity_bound;
-		t += delta;
-		c2v a0, b0;
-		d = c2Step(t, A, typeA, &ax, vA, &a0, B, typeB, &bx, vB, &b0, use_radius, &cache);
-		if (d)
-		{
-			a = a0;
-			b = b0;
-			n = c2Sub(b, a);
-		}
-		else break;
+		float t0 = t;
+		float t1 = t + delta;
+		if (t0 == t1) break;
+		t = t1;
+		d = c2Step(t, A, typeA, &ax, vA, &a, B, typeB, &bx, vB, &b, use_radius, &cache);
 	}
 
-	if (out_normal) *out_normal = c2SafeNorm(n);
-	if (out_contact_point) *out_contact_point = c2Mulvs(c2Add(a, b), 0.5f);
-	if (iterations) *iterations = iter;
-	return t >= 1 ? 1 : t;
+	t = t >= 1 ? 1 : t;
+	if (iterations) *iterations = iters;
+
+	return t;
 }
 
 int c2Hull(c2v* verts, int count)
