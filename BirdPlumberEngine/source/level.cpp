@@ -3,11 +3,11 @@
 level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
     cute_tiled_map_t* map = cute_tiled_load_map_from_file((path+"level.json").c_str(), 0);
     cute_tiled_layer_t* layer = map->layers;
-    int w = map->width;
-	int h = map->height;
+    width = map->width;
+	height = map->height;
     viewx = 0;
     viewy = 0;
-    text = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w*map->tilewidth, h*map->tileheight );
+    text = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width*map->tilewidth, height*map->tileheight );
     
     SDL_SetTextureBlendMode(text, SDL_BLENDMODE_BLEND);
     //SDL_SetTextureAlphaMod(text, 255);
@@ -19,11 +19,13 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
 
     while (layer)
 	{
+        std::vector<block*> vecint;
         SDL_Surface* surf = SDL_LoadBMP(
             (path + "image0.bmp").c_str());
         SDL_Texture* tileset = SDL_CreateTextureFromSurface(render,surf);
         SDL_FreeSurface(surf);
 		int* data = layer->data;
+        //vecint.push_back(0);
 		int data_count = layer->data_count;
         cute_tiled_object_t* object = layer->objects;
 		// do something with the tile data
@@ -33,13 +35,35 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
             }
             object = object->next;
         }
+
         for(int i = 0; i < data_count; i++) {
-            int posx = viewx + (i%w)*map->tilewidth;
-            int posy = viewy + (i/w)*map->tileheight;
+            cute_tiled_tile_descriptor_t* tile = getTileAt(data[i] - 1, map->tilesets->tiles);
+            if (tile) {
+                std::string tadd = tile->type.ptr;
+                vecint.push_back(
+                    new block(
+                        (i % width) * map->tilewidth,
+                        (i / width) * map->tileheight,
+                        map->tilewidth, map->tileheight,
+                        atoi(tadd.c_str()))
+                );
+            }
+            else {
+                vecint.push_back(
+                    new block(
+                        (i % width) * map->tilewidth,
+                        (i / width) * map->tileheight,
+                        map->tilewidth, map->tileheight,
+                        0)
+                );
+                //std::cout << "{" << vecint.back()->collider.min.x << "," << vecint.back()->collider.min.y << "},{" << vecint.back()->collider.max.x << "," << vecint.back()->collider.max.y << "}\n";
+            }
+            int posx = viewx + (i%width)*map->tilewidth;
+            int posy = viewy + (i/ width)*map->tileheight;
                 util::drawTexture(render,
                 tileset,
-                (i%w)*map->tilewidth,
-                (i/w)*map->tileheight,
+                (i% width)*map->tilewidth,
+                (i/ width)*map->tileheight,
                 0,
                 1.0,
                 false,
@@ -49,10 +73,12 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
                 map->tilewidth,
                 map->tileheight
                 );
+                debug->render((i % width) * map->tilewidth, (i / width) * map->tileheight, std::to_string(vecint.at(i)->actas), false, render);
         }
 
 		layer = layer->next;
         wd++;
+        actAsVec.push_back(vecint);
 	}
 
     SDL_SetRenderTarget(render, temp);
@@ -81,9 +107,10 @@ void level::render(SDL_Renderer* render) {
 void level::logic(double deltaTime) {
     if (player != nullptr) {
         player->logic(deltaTime);
+        player->physics(deltaTime, actAsVec.at(1), width, objects);
         float lerp = 0.1f;
-        viewx = -(player->getx() - 200);
-        viewy = -(player->gety() - 120);
+        //viewx = -(player->getx() - 200);
+        //viewy = -(player->gety() - 120);
     }
     for (GameObject* object : objects) {
         object->logic(deltaTime);
@@ -97,16 +124,27 @@ void level::logic(double deltaTime) {
     const Uint8* state = SDL_GetKeyboardState(NULL);
     background->logic(deltaTime);
     if (state[SDL_SCANCODE_W]) {
-        viewy++;
+        viewy+=deltaTime/5;
     }
     if (state[SDL_SCANCODE_A]) {
-        viewx++;
+        viewx += deltaTime / 5;
     }
     if (state[SDL_SCANCODE_S]) {
-        viewy--;
+        viewy-= deltaTime/5;
     }
     if (state[SDL_SCANCODE_D]) {
-        viewx--;
+        viewx -= deltaTime / 5;
     }
 
+}
+
+cute_tiled_tile_descriptor_t* level::getTileAt(int index, cute_tiled_tile_descriptor_t* tiles) {
+    
+    while (tiles) {
+        if (tiles->tile_index == index) {
+            return tiles;
+        }
+        tiles = tiles->next;
+    }
+    return NULL;
 }

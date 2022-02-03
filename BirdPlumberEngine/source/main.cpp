@@ -13,8 +13,9 @@
 
 #define _CRT_SECURE_NO_DEPRECATE
 #define CUTE_TILED_IMPLEMENTATION
+#define CUTE_C2_IMPLEMENTATION
 #include <cute_tiled.h>
-
+#include <cute_c2.h>
 #include "level.h"
 #define SCREEN_WIDTH 400
 #define SCREEN_HEIGHT 224

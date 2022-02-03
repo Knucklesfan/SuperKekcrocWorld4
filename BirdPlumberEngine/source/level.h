@@ -11,6 +11,7 @@
 #include "util.h"
 #include "font.h"
 #include "player.h"
+#include "block.h"
 
 class level : public scene {
     public:
@@ -24,5 +25,10 @@ class level : public scene {
         void keyPressed(SDL_Keycode);
         int viewx = 0;
         int viewy = 0;
+        int width = 0;
+        int height = 0;
+        std::vector<std::vector<block*>> actAsVec;
         Player* player;
+    private:
+        cute_tiled_tile_descriptor_t* getTileAt(int, cute_tiled_tile_descriptor_t* tiles);
 };
