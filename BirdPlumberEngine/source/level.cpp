@@ -90,7 +90,9 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
     debugfont = debug;
 }
 void level::keyPressed(SDL_Keycode key) {
-
+    if (player != nullptr) {
+        player->keyPress(key);
+    }
 }
 void level::render(SDL_Renderer* render) {
     background->render(render, false);
@@ -113,6 +115,8 @@ void level::logic(double deltaTime) {
     if (player != nullptr) {
         player->preStep(deltaTime);
         player->moveY(actAsVec.at(1), width, deltaTime);
+        player->moveX(actAsVec.at(1), width, deltaTime);
+        player->postStep(deltaTime);
         float lerp = 0.1f;
         //viewx = -(player->getx() - 200);
         //viewy = -(player->gety() - 120);

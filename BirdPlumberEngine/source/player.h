@@ -11,11 +11,13 @@ class Player
 		double x;
 		double y;
 		int frametime;
+		bool onground;
 		SDL_Texture* sprite;
+		void keyPress(SDL_Keycode key);
 		void preStep(double deltatime);
 		void moveY(std::vector<block*> colliders, int width, double deltaTime);
-		void moveX();
-		void postStep();
+		void moveX(std::vector<block*> colliders, int width, double deltaTime);
+		void postStep(double deltaTime);
 		void render(SDL_Renderer* render, int viewx, int viewy);
 		void physics(std::vector<block*> colliders, int width, std::vector<GameObject*> objects);
 		Player(int xa, int ya, SDL_Texture* sheet, SDL_Renderer* render);
