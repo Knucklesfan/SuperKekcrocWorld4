@@ -73,7 +73,12 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
                 map->tilewidth,
                 map->tileheight
                 );
-                debug->render((i % width) * map->tilewidth, (i / width) * map->tileheight, std::to_string(vecint.at(i)->actas), false, render);
+                SDL_Rect splashbox = {(vecint.at(i)->collider.min.x), (vecint.at(i)->collider.min.y), 16, 16};
+                SDL_SetRenderDrawColor(render, (vecint.at(i)->actas > 0? 255: 0), 0, 0, 255);
+                SDL_RenderDrawRect(render, &splashbox);
+                SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+
+                //debug->render((i % width) * map->tilewidth, (i / width) * map->tileheight, std::to_string(vecint.at(i)->actas), false, render);
         }
 
 		layer = layer->next;
@@ -106,8 +111,8 @@ void level::render(SDL_Renderer* render) {
 }
 void level::logic(double deltaTime) {
     if (player != nullptr) {
-        player->logic(deltaTime);
-        player->physics(deltaTime, actAsVec.at(1), width, objects);
+        player->preStep(deltaTime);
+        player->moveY(actAsVec.at(1), width, deltaTime);
         float lerp = 0.1f;
         //viewx = -(player->getx() - 200);
         //viewy = -(player->gety() - 120);

@@ -10,19 +10,21 @@ Player::Player(int xa, int ya, SDL_Texture* sheet, SDL_Renderer* render) {
     SDL_FreeSurface(surf);
 }
 void Player::render(SDL_Renderer* render, int viewx, int viewy) {
-	util::drawTexture(sprite, viewx+x, viewy+y, 0, 1.0, false, SDL_FLIP_NONE, render);
+	util::drawTexture(render, sprite, viewx+(x-8), viewy+(y), 0, 1.0, false, SDL_FLIP_NONE,poses[pose].at(frametime%poses[pose].size()) * 32, poses[pose].at(frametime % poses[pose].size()) * 32, 32, 32);
+    SDL_Rect splashbox = { viewx + (collider.min.x), viewy + (collider.min.y), 16, 32 };
+    SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
+    SDL_RenderDrawRect(render, &splashbox);
+    SDL_Rect orther = { viewx + (lastbox.min.x), viewy + (lastbox.min.y), 16, 32 };
+    SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
+    SDL_RenderDrawRect(render, &orther);
+    SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 }
-void Player::logic(double deltaTime) {
+void Player::preStep(double deltaTime) {
+    frametime += deltaTime;
     //std::cout << "(" << x << "," << y << ")\n";
     const Uint8* state = SDL_GetKeyboardState(NULL);
     if (state[SDL_SCANCODE_UP]) {
         yvelocity = -1;
-    }
-    else if (state[SDL_SCANCODE_DOWN]) {
-        yvelocity = 1;
-    }
-    else {
-        yvelocity -= deltaTime/500;
     }
 
     if (state[SDL_SCANCODE_RIGHT]) {
@@ -36,38 +38,39 @@ void Player::logic(double deltaTime) {
     }
 }
 
-void Player::physics(double deltatime, std::vector<block*> colliders, int width, std::vector<GameObject*> objects) {
-    
-    c2AABB c;
-    c.min = c2V(floor(x),floor(y));
-    c.max = c2V(floor(x)+16, floor(y)+32);
-
-    for (block* blocks : colliders)
-    {
-        if (blocks->actas != 0) {
-            c2Manifold m;
-            c2AABBtoAABBManifold(c, blocks->collider, &m);
-            if (m.depths[0] > 0 )
-            {
-                int hit = m.depths[0];
-                if (hit > blocks->width / 2) {
-                    hit = -((int)(m.depths[0]) % blocks->width / 2);
-                }
-                if (hit > 0) {
-                    if (xvelocity > 0) {
-                        x -= (double(deltatime / 5) * xvelocity);
-                        xvelocity = 0;
-                    }
-                    else {
-                        x += (double(deltatime / 5) * xvelocity);
-                        xvelocity = 0;
-                    }
-                }
-                std::cout << "Contact X:" << hit << " Y: " << m.depths[1] << "\n";
+void Player::moveY(std::vector<block*> colliders, int width, double deltaTime) {
+    collider.min = c2V(x, y);
+    collider.max = c2V(x + 16, y + 16);
+    for (int i = 0; i < colliders.size(); i++) {
+        block* blk = colliders.at(i);
+        if (blk->actas > 0) {
+            double ye = y + (deltaTime/5 * yvelocity); //y at the end of the frame
+            c2AABB box;
+            box.min = c2V(x, ye);
+            int maxy = 1;
+            if(yvelocity != 0) {
+                maxy = yvelocity / abs(yvelocity) * 16;
             }
+            box.max = c2V(x + 16, ye + (16));
+            lastbox = box;
+            //std::cout << "{" + std::to_string(box.max.x) + ", " + std::to_string(box.max.y) + "}\n";
+            if (c2AABBtoAABB(box,blk->collider)) {
+
+                if (yvelocity < 0) {
+                    y = blk->y+blk->height;
+                    std::cout << "goin down\n";
+                    yvelocity = 1;
+                }
+                else if (yvelocity > 0) {
+                    std::cout << "INSIDE!\n";
+                    y = blk->y - blk->height;
+                    yvelocity = 0;
+                }
+            }
+            
         }
     }
-    x += (double(deltatime/5)*xvelocity);
+    y = y + deltaTime/5 * yvelocity;
 }
 int Player::getx() {
     return x;
