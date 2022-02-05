@@ -147,6 +147,8 @@
   <ItemGroup>
     <ClCompile Include="source\background.cpp" />
     <ClCompile Include="source\bgtextscene.cpp" />
+    <ClCompile Include="source\bluecoin.cpp" />
+    <ClCompile Include="source\coin.cpp" />
     <ClCompile Include="source\font.cpp" />
     <ClCompile Include="source\level.cpp" />
     <ClCompile Include="source\main.cpp" />
@@ -158,6 +160,8 @@
     <ClInclude Include="source\background.h" />
     <ClInclude Include="source\bgtextscene.h" />
     <ClInclude Include="source\block.h" />
+    <ClInclude Include="source\bluecoin.h" />
+    <ClInclude Include="source\coin.h" />
     <ClInclude Include="source\font.h" />
     <ClInclude Include="source\GameObject.h" />
     <ClInclude Include="source\level.h" />

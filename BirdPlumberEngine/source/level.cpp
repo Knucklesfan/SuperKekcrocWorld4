@@ -1,6 +1,6 @@
 #include "level.h"
 
-level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
+level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug, std::vector<Mix_Chunk*> snds, std::vector<Mix_Music*> mus, std::vector<SDL_Texture*> textures) {
     cute_tiled_map_t* map = cute_tiled_load_map_from_file((path+"level.json").c_str(), 0);
     cute_tiled_layer_t* layer = map->layers;
     width = map->width;
@@ -8,7 +8,8 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
     viewx = 0;
     viewy = 0;
     text = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width*map->tilewidth, height*map->tileheight );
-    
+    sounds = snds;
+    music = mus;
     SDL_SetTextureBlendMode(text, SDL_BLENDMODE_BLEND);
     //SDL_SetTextureAlphaMod(text, 255);
     SDL_Texture* temp = SDL_GetRenderTarget(render);
@@ -16,7 +17,8 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
     SDL_SetRenderTarget(render, text);
     SDL_RenderClear(render);
     int wd = 0;
-
+    messagebox = new message(render, "default", debug, sounds, words, def, 72, 12, 240, 58);
+    messagebox->loadFromFile("example/first.xml", false);
     while (layer)
 	{
         std::vector<block*> vecint;
@@ -32,6 +34,12 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
         while (object) {
             if (!strcmp(object->type.ptr, "Player")) {
                 player = new Player(object->x, object->y, nullptr, render);
+            }
+            else if (!strcmp(object->type.ptr, "Coin")) {
+                objects.push_back(new coin(object->x, object->y, textures[0]));
+            }
+            else if (!strcmp(object->type.ptr, "BlueCoin")) {
+                objects.push_back(new bluecoin(object->x, object->y, textures[0]));
             }
             object = object->next;
         }
@@ -73,11 +81,12 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
                 map->tilewidth,
                 map->tileheight
                 );
+                /*
                 SDL_Rect splashbox = {(vecint.at(i)->collider.min.x), (vecint.at(i)->collider.min.y), 16, 16};
                 SDL_SetRenderDrawColor(render, (vecint.at(i)->actas > 0? 255: 0), 0, 0, 255);
                 SDL_RenderDrawRect(render, &splashbox);
                 SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
-
+                */
                 //debug->render((i % width) * map->tilewidth, (i / width) * map->tileheight, std::to_string(vecint.at(i)->actas), false, render);
         }
 
@@ -88,11 +97,15 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug) {
 
     SDL_SetRenderTarget(render, temp);
     debugfont = debug;
+    Mix_HaltMusic();
+    Mix_PlayMusic(music[1], -1);
 }
 void level::keyPressed(SDL_Keycode key) {
     if (player != nullptr) {
         player->keyPress(key);
     }
+    messagebox->keyPressed(key);
+
 }
 void level::render(SDL_Renderer* render) {
     background->render(render, false);
@@ -109,42 +122,38 @@ void level::render(SDL_Renderer* render) {
         player->render(render, viewx, viewy);
     }
     debugfont->render(8,8,text,false, render);
-
+    messagebox->render(render);
 }
 void level::logic(double deltaTime) {
-    if (player != nullptr) {
-        player->preStep(deltaTime);
-        player->moveY(actAsVec.at(1), width, deltaTime);
-        player->moveX(actAsVec.at(1), width, deltaTime);
-        player->postStep(deltaTime);
-        float lerp = 0.1f;
-        //viewx = -(player->getx() - 200);
-        //viewy = -(player->gety() - 120);
-    }
-    for (GameObject* object : objects) {
-        object->logic(deltaTime);
-        std::cout << object->getx() << ", " << object->gety() << "\n";
-        //viewx = object->getx()+200;
-        //viewy = object->gety()+120;
-    }
+    if(!messagebox->active) {
+
+        if (player != nullptr) {
+            player->preStep(deltaTime);
+            player->durangoController(actAsVec.at(1), width, deltaTime);
+            player->postStep(deltaTime, objects, this);
+            if (-(player->x - 200 < 0)) {
+                viewx = 0;
+            }
+            else {
+                viewx = -(player->x - 200);
+            }
+            viewy = -(player->y - 120);
+        }
+        int iter = 0;
+        for (GameObject* object : objects) {
+            object->logic(deltaTime);
+            if (!object->active) {
+
+                objects.erase(objects.begin() + iter);
+                free(object);
+            }
+            iter++;
+        }
 
     
-
-    const Uint8* state = SDL_GetKeyboardState(NULL);
+    }
     background->logic(deltaTime);
-    if (state[SDL_SCANCODE_W]) {
-        viewy+=deltaTime/5;
-    }
-    if (state[SDL_SCANCODE_A]) {
-        viewx += deltaTime / 5;
-    }
-    if (state[SDL_SCANCODE_S]) {
-        viewy-= deltaTime/5;
-    }
-    if (state[SDL_SCANCODE_D]) {
-        viewx -= deltaTime / 5;
-    }
-
+    messagebox->logic(deltaTime);
 }
 
 cute_tiled_tile_descriptor_t* level::getTileAt(int index, cute_tiled_tile_descriptor_t* tiles) {

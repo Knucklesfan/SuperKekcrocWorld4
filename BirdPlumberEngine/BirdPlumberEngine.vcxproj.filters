@@ -39,6 +39,12 @@
     <ClCompile Include="source\player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\coin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\bluecoin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\background.h">
@@ -69,6 +75,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\block.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\coin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\bluecoin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

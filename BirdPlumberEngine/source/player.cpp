@@ -10,136 +10,194 @@ Player::Player(int xa, int ya, SDL_Texture* sheet, SDL_Renderer* render) {
     SDL_FreeSurface(surf);
 }
 void Player::render(SDL_Renderer* render, int viewx, int viewy) {
-	util::drawTexture(render, sprite, viewx+(x-8), viewy+(y), 0, 1.0, false, SDL_FLIP_NONE,poses[pose].at((frametime/50)%poses[pose].size()) * 32, 0, 32, 32);
-    SDL_Rect splashbox = { viewx + (collider.min.x), viewy + (collider.min.y), 16, 32 };
-    SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
-    SDL_RenderDrawRect(render, &splashbox);
-    SDL_Rect orther = { viewx + (lastbox.min.x), viewy + (lastbox.min.y), 16, 32 };
-    SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
-    SDL_RenderDrawRect(render, &orther);
-    SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+	util::drawTexture(render, sprite, viewx+(x-9), viewy+(y-1), 0, 1.0, false, facing?SDL_FLIP_HORIZONTAL:SDL_FLIP_NONE,poses[pose].at((frametime/50)%poses[pose].size()) * 32, 0, 32, 32);
 }
 void Player::preStep(double deltaTime) {
     frametime += deltaTime;
-    //std::cout << "(" << x << "," << y << ")\n";
-    const Uint8* state = SDL_GetKeyboardState(NULL);
-
-    if (state[SDL_SCANCODE_RIGHT]) {
-        xvelocity = 1;
-    }
-    else if (state[SDL_SCANCODE_LEFT]) {
-        xvelocity = -1;
-    }
-    else {
-        xvelocity = 0;
-    }
 }
 
-void Player::moveY(std::vector<block*> colliders, int width, double deltaTime) {
-    collider.min = c2V(x, y);
-    collider.max = c2V(x + 16, y + 16);
-    for (int i = 0; i < colliders.size(); i++) {
-        block* blk = colliders.at(i);
-        if (blk->actas > 0) {
-            double ye = y + (deltaTime / 5 * yvelocity); //y at the end of the frame
-            c2AABB box;
-            box.min = c2V(x, ye);
-            box.max = c2V(x + 16, ye + (16));
-            lastbox = box;
-
-            //std::cout << "{" + std::to_string(box.max.x) + ", " + std::to_string(box.max.y) + "}\n";
-            if (c2AABBtoAABB(box, blk->collider)) {
-
-                if (yvelocity < 0) {
-                    y = blk->y + blk->height;
-                    std::cout << "goin down\n";
-                    yvelocity = 1;
-                }
-                else if (yvelocity > 0) {
-                    std::cout << "INSIDE!\n";
-                    y = blk->y - blk->height;
-                    yvelocity = 0;
-                    onground = true;
-                }
-            }
-            else {
-                if (yvelocity != 0 && !onground) {
-                    yvelocity += deltaTime / 50000;
-
-                }
-            }
-
+void Player::postStep(double deltaTime, std::vector<GameObject*> objs, level* level) {
+    for (GameObject* obj : objs) {
+        if (objectcollision(x, y, 14, 30, obj)) {
+            obj->collided(nullptr, level);
         }
     }
-}
+    pose = 0;
 
-void Player::moveX(std::vector<block*> colliders, int width, double deltaTime) {
-    collider.min = c2V(x, y);
-    collider.max = c2V(x + 16, y + 16);
-    for (int i = 0; i < colliders.size(); i++) {
-        block* blk = colliders.at(i);
-        if (blk->actas > 0) {
-            double xe = x + (deltaTime / 5 * xvelocity); //y at the end of the frame
-            c2AABB box;
-            box.min = c2V(xe, y);
-            box.max = c2V(xe + 16, y + (16));
-            lastbox = box;
-
-            //std::cout << "{" + std::to_string(box.max.x) + ", " + std::to_string(box.max.y) + "}\n";
-            if (c2AABBtoAABB(box, blk->collider)) {
-
-                if (xvelocity < 0) {
-                    x = blk->x + blk->height;
-                    xvelocity = 0;
-                }
-                else if (xvelocity > 0) {
-                    x = blk->x - blk->height;
-                    xvelocity = 0;
-                }
-            }
-            else {
-                if (xvelocity != 0) {
-                    xvelocity += deltaTime / 50000;
-                }
-            }
-
-        }
-    }
-
-}
-void Player::postStep(double deltaTime) {
-    if (xvelocity != 0) {
+    if (hsp > 0) {
+        facing = true;
         pose = 1;
     }
-    else if (yvelocity > 0) {
+    else if (hsp < 0) {
+        facing = false;
+        pose = 1;
+    }
+
+    if (vsp > 0) {
         pose = 3;
     }
-    else if (yvelocity < 0) {
+    else if (vsp < 0) {
         pose = 2;
     }
-    else {
-        pose = 0;
-    }
-    x = x + deltaTime / 5 * xvelocity;
-    y = y + deltaTime / 5 * yvelocity;
     
 }
-int Player::getx() {
-    return x;
+
+void Player::durangoController(std::vector<block*> colliders, int width, double deltaTime) {
+        const Uint8* state = SDL_GetKeyboardState(NULL);
+        int kright, kleft, kjump, xdir, krun;
+        kright = state[SDL_SCANCODE_RIGHT];
+        kleft = state[SDL_SCANCODE_LEFT];
+        kjump = state[SDL_SCANCODE_Z];
+        xdir = kright;
+        if (kleft) {
+            xdir = -1;
+        }
+
+        onground = checkForCollision(x, y + 1, 14, 30, colliders, 1);
+        krun = state[SDL_SCANCODE_A];
+        if (xdir != 0)
+        {
+
+            hsp = approach(hsp, (hsp_max * (1 + krun)) * xdir, accel);
+        }
+        else
+        {
+            hsp = approach(hsp, 0, fric);
+        }
+
+        if (kjump && onground)
+        {
+            vsp = -vsp_max;
+        }
+        //std::cout << "KEYLEFT: " << kleft << " KEYRIGHT: " << kright << " XDIR: " << xdir << " HSP: " << hsp << "VSP: " << vsp << "\n";
+
+        if (!onground)
+        {
+            vsp = approach(vsp, vsp_max, grav);
+        }
+        double dy;
+        for (int i = 0; i < abs(hsp); i++) {
+            if (onground) {
+
+                if (checkForCollision(x + sign(hsp) / deltaTime, y, 14, 30, colliders, 1)) {
+                    dy = calcSlopeUp(hsp / deltaTime, colliders);     // Measure the slope
+                    if (dy <= slope_max) // Climbable
+                    {
+                        x += sign(hsp) / deltaTime;
+                        y -= dy / deltaTime;
+                        continue;
+                    }
+                    hsp = 0; // Unclimbable
+                    break;
+                }
+                else if (!checkForCollision(x + sign(hsp) / deltaTime, y + 1, 14, 30, colliders, 1)) // Down slope (just like we did up slopes)
+                {
+                    dy = calcSlopeDown(hsp / deltaTime, colliders);
+                    if (dy <= slope_max)
+                    {
+                        x += sign(hsp) / deltaTime;
+                        y += dy / deltaTime;
+                        continue;
+                    }
+                    x += sign(hsp)/deltaTime; // Continue the loop rather than break the loop to keep momentum
+                    continue;
+                }
+                else { x += sign(hsp) / deltaTime; } // Flat
+            }
+            else // We're in the air so we don't check for slopes
+            {
+                if (!checkForCollision(x + sign(hsp) / deltaTime, y, 14, 30, colliders, 1)) x += sign(hsp) / deltaTime;
+                else
+                {
+                    hsp = 0;
+                    break;
+                }
+            }
+        }
+        for (int i = 0; i < std::abs(vsp) / deltaTime; i++) // Vertical movement
+        {
+            if (!checkForCollision(x, y + sign(vsp) / deltaTime, 14, 30, colliders, 1)) {
+                y += sign(vsp) / deltaTime;
+            }
+            else
+            {
+                vsp = 0;
+                break;
+            }
+        }
+        
+        if (checkForCollision(x, y, 14, 30, colliders, 1)) {
+            //Right
+            if (!checkForCollision(x + 1, y, 14, 30, colliders, 1)) {
+                x += 1;
+            }
+            //Left
+            if (!checkForCollision(x - 1, y, 14, 30, colliders, 1)) {
+                x -= 1;
+            }
+            //Up
+            if (!checkForCollision(x, y - 1, 14, 30, colliders, 1)) {
+                y -= 1;
+            }
+            if (!checkForCollision(x, y + 1, 14, 30, colliders, 1)) {
+                y += 1;
+            }
+        }
 }
 
-int Player::gety() {
-    return y;
-}
-
-int Player::gettype() {
-    return type;
-}
 void Player::keyPress(SDL_Keycode key) {
-    switch (key) {
-        case SDLK_z: {
-            yvelocity = -2;
-            onground = false;
+}
+//checks for collisions between objects at a point. If id = -1, then it checks for any collisions above 0, and returns the int of the first one to check the box, or -1 if nothing.
+
+int Player::checkForCollision(int x, int y, int w, int h, std::vector<block*> colliders, int id) {
+    c2AABB box;
+    box.min = c2V(x, y);
+    box.max = c2V(x + w, y + h);
+    for (int i = 0; i < colliders.size(); i++) {
+        block* blk = colliders.at(i);
+        if (id >= 0 ? (blk->actas == id) : (blk->actas > 0)) {
+            if (c2AABBtoAABB(box, blk->collider)) {
+                return 1;
+            }
         }
     }
+    return 0;
+}
+int Player::objectcollision(int x, int y, int w, int h, GameObject* obj) {
+    c2AABB box;
+    box.min = c2V(x, y);
+    box.max = c2V(x + w, y + h);
+    if (c2AABBtoAABB(box, obj->box)) {
+        return 1;
+    }
+    return 0;
+}
+double Player::approach(double start, double end, double shift) {
+    if (start < end) return std::min(start + shift, end);
+    return std::max(start - shift, end);
+}
+
+int Player::sign(int num) {
+    return (num > 0) - (num < 0);
+}
+
+int Player::calcSlopeUp(double hsp, std::vector<block*> colliders) {
+    int dy = 0;
+    while (checkForCollision(x + sign(hsp), y - dy, 14, 30, colliders, 1)) // While we are not at the top of the slope
+    {
+        dy++;
+        if (dy > slope_max) break; // Break if the slope is greater than we can climb
+    }
+    return dy;
+
+}
+
+int Player::calcSlopeDown(double hsp, std::vector<block*> colliders) {
+    int dy = 0;
+    while (!checkForCollision(x + sign(hsp), y + dy + 1, 14, 30,colliders, 1)) // While we are not at the bottom of the slope
+    {
+        dy++;
+        if (dy > slope_max) break; // Break if the slope is greater than we can climb
+    }
+    return dy;
 }

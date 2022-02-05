@@ -3,7 +3,7 @@
 #include "util.h"
 #include <cute_c2.h>
 #include "block.h"
-
+#include "GameObject.h"
 class Player
 {
 	public:
@@ -11,23 +11,14 @@ class Player
 		double x;
 		double y;
 		int frametime;
-		bool onground;
 		SDL_Texture* sprite;
 		void keyPress(SDL_Keycode key);
 		void preStep(double deltatime);
-		void moveY(std::vector<block*> colliders, int width, double deltaTime);
-		void moveX(std::vector<block*> colliders, int width, double deltaTime);
-		void postStep(double deltaTime);
+		void postStep(double deltaTime, std::vector<GameObject*> objs, level* level);
 		void render(SDL_Renderer* render, int viewx, int viewy);
-		void physics(std::vector<block*> colliders, int width, std::vector<GameObject*> objects);
+		void durangoController(std::vector<block*> colliders, int width, double deltaTime);
 		Player(int xa, int ya, SDL_Texture* sheet, SDL_Renderer* render);
-		int getx();
-		int gety();
-		int gettype();
-		double xvelocity;
-		double yvelocity;
-		c2AABB collider;
-		c2AABB lastbox;
+
 		int pose;
 		std::vector<int> poses[6] = {
 			{0},
@@ -37,6 +28,26 @@ class Player
 			{5},
 			{6}
 		};
+
+
+		bool onground;
+		double hsp = 0; //current horizontal speed
+		double vsp = 0; //current vertical speed
+		int facing = -1;
+
+		const double hsp_max = 3; // max speeds
+		const double vsp_max = 64;
+		int slope_max = 2;    // Max climb distance
+		double accel = 1.5;
+		double fric = 0.8;
+		double grav = 0.6;
+private: 
+	int objectcollision(int x, int y, int w, int h, GameObject* obj);
+	int checkForCollision(int x, int y, int w, int h, std::vector<block*> colliders, int id);
+	double approach(double start, double end, double shift);
+	int sign(int num);
+	int calcSlopeUp(double hsp, std::vector<block*> colliders);
+	int calcSlopeDown(double hsp, std::vector<block*> colliders);
 
 };
 

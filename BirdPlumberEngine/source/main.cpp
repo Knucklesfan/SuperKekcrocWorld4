@@ -10,6 +10,7 @@
 #include <chrono>
 #include "scene.h"
 #include "bgtextscene.h"
+#include "GameObject.h"
 
 #define _CRT_SECURE_NO_DEPRECATE
 #define CUTE_TILED_IMPLEMENTATION
@@ -96,8 +97,47 @@ int main(int argc, char* argv[])
 
         std::vector<font*> fnts;
         std::vector<Mix_Chunk*> sounds;
+        std::vector<Mix_Music*> music;
         std::vector<bg*> backgs;
         std::vector<SDL_Texture*> textures;
+        {
+            rapidxml::file<> xmlFile("./sprites/sprites.xml");
+            rapidxml::xml_document<> doc;
+            doc.parse<0>(xmlFile.data());
+            rapidxml::xml_node<char>* parent = doc.first_node("sprites");
+            for (rapidxml::xml_node<char>* child = parent->first_node(); child != NULL; child = child->next_sibling()) {
+                std::string path = "./sprites/";
+                path += child->value();
+                SDL_Surface* surf = SDL_LoadBMP(path.c_str());
+                SDL_Texture* temp = SDL_CreateTextureFromSurface(renderer, surf);
+                if (!temp) {
+                    printf("Failed to load texture at %s: %s\n", path, SDL_GetError());
+                    return 0;
+                }
+                textures.push_back(temp);
+                printf("Successfully loaded texture at %s\n", path.c_str());
+
+            }
+        }
+        {
+            rapidxml::file<> xmlFile("./music/music.xml");
+            rapidxml::xml_document<> doc;
+            doc.parse<0>(xmlFile.data());
+            rapidxml::xml_node<char>* parent = doc.first_node("music");
+            for (rapidxml::xml_node<char>* child = parent->first_node(); child != NULL; child = child->next_sibling()) {
+                std::string path = "./music/";
+                path += child->value();
+                Mix_Music* temp = Mix_LoadMUS(path.c_str());
+                if (!temp) {
+                    printf("Failed to load song at %s: %s\n", path, SDL_GetError());
+                    return 0;
+                }
+                music.push_back(temp);
+                printf("Successfully loaded song at %s\n", path.c_str());
+
+            }
+        }
+
         {
             rapidxml::file<> xmlFile("./sounds/sounds.xml");
             rapidxml::xml_document<> doc;
@@ -198,7 +238,7 @@ int main(int argc, char* argv[])
         next_time = SDL_GetTicks() + TICK_INTERVAL;
         double _fps = 0;
         //scene* scn = new bgtextscene(renderer, textures, backgs, sounds, fnts);
-        scene* scn = new level(renderer,"./levels/testlevels/", backgs.at(0), fnts[0]);
+        scene* scn = new level(renderer,"./levels/testlevels/", backgs.at(0), fnts[0], sounds, music, textures);
         while (!quit) {
             auto t1 = std::chrono::high_resolution_clock::now();
             while (SDL_PollEvent(&event)) {
@@ -222,6 +262,7 @@ int main(int argc, char* argv[])
 
 
 
+            fnts[0]->render(8, 16, std::to_string(_fps), false, renderer);
 
             SDL_SetRenderTarget(renderer, NULL);
             SDL_RenderClear(renderer);
