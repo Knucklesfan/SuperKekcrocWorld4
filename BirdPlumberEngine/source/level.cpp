@@ -97,8 +97,6 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug, std
 
     SDL_SetRenderTarget(render, temp);
     debugfont = debug;
-    Mix_HaltMusic();
-    Mix_PlayMusic(music[1], -1);
 }
 void level::keyPressed(SDL_Keycode key) {
     if (player != nullptr) {
@@ -124,6 +122,12 @@ void level::render(SDL_Renderer* render) {
     debugfont->render(8,8,text,false, render);
     messagebox->render(render);
 }
+
+void level::reset() {
+    Mix_HaltMusic();
+    Mix_PlayMusic(music[1], -1);
+}
+
 void level::logic(double deltaTime) {
     if(!messagebox->active) {
 
@@ -139,21 +143,22 @@ void level::logic(double deltaTime) {
             }
             viewy = -(player->y - 120);
         }
-        int iter = 0;
         for (GameObject* object : objects) {
-            object->logic(deltaTime);
-            if (!object->active) {
-
-                objects.erase(objects.begin() + iter);
-                free(object);
-            }
-            iter++;
+                object->logic(deltaTime);
         }
-
     
     }
     background->logic(deltaTime);
     messagebox->logic(deltaTime);
+    int iter = 0;
+    for (GameObject* object : objects) {
+        if (!object->active) {
+            objects.erase(objects.begin() + iter);
+            free(object);
+            break;
+        }
+        iter++;
+    }
 }
 
 cute_tiled_tile_descriptor_t* level::getTileAt(int index, cute_tiled_tile_descriptor_t* tiles) {

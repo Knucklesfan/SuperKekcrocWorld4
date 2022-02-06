@@ -50,12 +50,18 @@ void message::setText(std::vector<std::string> words, std::vector<std::vector<in
         }
         if (count > drawhei / text->height) {
             for (int i = 0; i < count / (drawhei/text->height) + count % (drawhei / text->height); i++) {
-                towrite.push_back(
-                    toadd.substr(
-                    util::nthOccurrence(toadd, "\n", (i) * (drawhei / text->height)) + (i>0?1:0),
-                    util::nthOccurrence(toadd, "\n", (i+1) * (drawhei / text->height)) - util::nthOccurrence(toadd, "\n", (i) *(drawhei / text->height))
-                ));
-                textsettings.push_back(props.at(index));
+                std::string writable = toadd.substr(
+                    util::nthOccurrence(toadd, "\n", (i) * (drawhei / text->height)) + (i > 0 ? 1 : 0),
+                    util::nthOccurrence(toadd, "\n", (i + 1) * (drawhei / text->height)) - util::nthOccurrence(toadd, "\n", (i) * (drawhei / text->height)));
+                if (writable.length() > 2) {
+                    towrite.push_back(writable);
+                    if (i + 1 >= count / (drawhei / text->height) + count % (drawhei / text->height)) {
+                        textsettings.push_back(props.at(index));
+                    }
+                    else {
+                        textsettings.push_back({ 0 });
+                    }
+                }
             }
             std::cout << count << "\n";
         }
@@ -215,6 +221,20 @@ int message::runMsgScript(int type) {
             Mix_PlayChannel(-1, sounds[2], 0);
             break;
         }
+        case 3: {
+            hide = true;
+            currentword = 0;
+            onscrnwrds = "";
+            Mix_PlayChannel(-1, sounds[2], 0);
+            return 3;
+        }
+        case 4: {
+            currentword++;
+            onscrnwrds = "";
+            Mix_PlayChannel(-1, sounds[0], 0);
+            return 4;
+        }
+
         case textsettings::SELECT: {
             currentword = textsettings[currentword][dialogselect + 1];
             onscrnwrds = "";

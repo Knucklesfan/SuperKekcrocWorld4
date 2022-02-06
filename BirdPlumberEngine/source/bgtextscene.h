@@ -27,15 +27,17 @@ class bgtextscene : public scene {
         };
         int nextbg = 0;
         int currentbg = 0;
+        int endtick = 0;
         double ticks = 0;
         double transitionalpha = 1.0;
         bool up = false;
         bool down = false;
         bool transitioning = false;
         bool active = false;
-		bgtextscene(SDL_Renderer* render, std::vector<SDL_Texture*> texture, std::vector<bg*>  backg, std::vector<Mix_Chunk*> soundVec, std::vector<font*>  font);
+		bgtextscene(SDL_Renderer* render, std::vector<SDL_Texture*> texture, std::vector<bg*>  backg, std::vector<Mix_Chunk*> soundVec, std::vector<Mix_Music*> songs, std::vector<font*>  font);
 		std::vector<bg*> backgrounds;
 		std::vector<Mix_Chunk*> sounds;
+        std::vector<Mix_Music*> music;
 		std::vector<font*> fonts;
 		message* msg;
 		void render(SDL_Renderer* renderer);

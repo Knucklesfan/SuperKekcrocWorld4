@@ -27,6 +27,7 @@ class level : public scene {
         level(SDL_Renderer* render, std::string path, bg* backg, font* debug, std::vector<Mix_Chunk*> snds, std::vector<Mix_Music*> mus, std::vector<SDL_Texture*> textures);
         void render(SDL_Renderer* render);
         void logic(double);
+        void reset();
         void keyPressed(SDL_Keycode);
         int viewx = 0;
         int viewy = 0;

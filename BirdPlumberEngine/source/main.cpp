@@ -11,6 +11,7 @@
 #include "scene.h"
 #include "bgtextscene.h"
 #include "GameObject.h"
+#include "titlescreen.h"
 
 #define _CRT_SECURE_NO_DEPRECATE
 #define CUTE_TILED_IMPLEMENTATION
@@ -23,20 +24,26 @@
 
 #define TICK_INTERVAL    7
 
-static Uint32 next_time;
 
-Uint32 time_left(void)
+
+double calc_dt()
 {
-    Uint32 now;
+    static int first = 1;
+    static double inv_freq;
+    static uint64_t prev;
 
-    now = SDL_GetTicks();
-    if(next_time <= now)
-        return 0;
-    else
-        return next_time - now;
+    uint64_t now = SDL_GetPerformanceCounter();
+
+    if (first) {
+        first = 0;
+        prev = now;
+        inv_freq = 1.0 / (double)SDL_GetPerformanceFrequency();
+    }
+
+    double dt = ((double)(now - prev) * inv_freq);
+    prev = now;
+    return dt;
 }
-
-
 
 //so like, i totally didnt just absolutely copy nearly everything from Knuxfan's Tetriminos because i'm lazy, noo that'd be stupid lol
 
@@ -232,37 +239,41 @@ int main(int argc, char* argv[])
         SDL_Texture* kekcroc = util::generateTexture("./players/kekcroc/0.bmp",renderer);
         SDL_Event event;
         bool quit = false;
-        Uint64 NOW = SDL_GetPerformanceCounter();
-        Uint64 LAST = 0;
-        float deltaTime = 0;
-        next_time = SDL_GetTicks() + TICK_INTERVAL;
-        double _fps = 0;
+        double deltaTime;
+        calc_dt();
+        int gamemode = 0;
         //scene* scn = new bgtextscene(renderer, textures, backgs, sounds, fnts);
-        scene* scn = new level(renderer,"./levels/testlevels/", backgs.at(0), fnts[0], sounds, music, textures);
+        scene* scenes[3] = {
+            new titlescreen(renderer, backgs[1], fnts, sounds, music),
+            new bgtextscene(renderer, textures, backgs, sounds, music, fnts),
+            new level(renderer,"./levels/testlevels/", backgs.at(0), fnts[0], sounds, music, textures),
+        };
+        Mix_HaltMusic();
+        Mix_PlayMusic(music[3], -1);
+
         while (!quit) {
-            auto t1 = std::chrono::high_resolution_clock::now();
             while (SDL_PollEvent(&event)) {
                 if (event.type == SDL_QUIT) {
                     quit = true;
                 }
                 if (event.type == SDL_KEYDOWN) {
-                    scn->keyPressed(event.key.keysym.sym);
+                    scenes[gamemode]->keyPressed(event.key.keysym.sym);
                 }
             }
 
-            LAST = NOW;
-            NOW = SDL_GetPerformanceCounter();
-            deltaTime = (double)((NOW - LAST) * 1000 / (double)SDL_GetPerformanceFrequency());
+            deltaTime = calc_dt()*1000;
             SDL_SetRenderTarget(renderer, rendertext);
             SDL_RenderClear(renderer);
 
+            //std::cout << deltaTime;
+            scenes[gamemode]->logic(deltaTime);
+            scenes[gamemode]->render(renderer);
+            int endlogic = scenes[gamemode]->endlogic();
+            if (endlogic > 0) {
+                gamemode = endlogic;
+                scenes[gamemode]->reset();
+            }
 
-            scn->logic(deltaTime);
-            scn->render(renderer);
-
-
-
-            fnts[0]->render(8, 16, std::to_string(_fps), false, renderer);
 
             SDL_SetRenderTarget(renderer, NULL);
             SDL_RenderClear(renderer);
@@ -270,13 +281,6 @@ int main(int argc, char* argv[])
 
             SDL_RenderCopy(renderer, rendertext, NULL, NULL);
             SDL_RenderPresent(renderer);
-            SDL_Delay(time_left());
-            next_time += TICK_INTERVAL;
-
-            auto t2 = std::chrono::high_resolution_clock::now();
-            Uint64 ms_int = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-
-            _fps = (1000000 / ms_int);
 
         }
 }

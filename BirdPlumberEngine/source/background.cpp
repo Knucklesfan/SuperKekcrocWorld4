@@ -170,7 +170,7 @@ void bg::render(SDL_Renderer* renderer, bool layer) {
             multiplery = -1;
         }
         bool dothis = sine && i == sinelayer;
-        drawLayer(renderer, textures[i], tempx, tempy, multiplerx, multiplery, width, height,
+        drawLayer(renderer, textures[i], tempx, tempy-200, multiplerx, multiplery, width, height,
             dothis,
             snwid, //wave width in pixels
             snwidth, //sine width

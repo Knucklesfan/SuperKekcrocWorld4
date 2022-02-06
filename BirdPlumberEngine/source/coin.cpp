@@ -6,8 +6,8 @@ coin::coin(int x, int y, SDL_Texture* text) {
 	coin::type = COIN;
 	sprite = text;
 	active = true;
-	box.min = c2V(x+4, y+4);
-	box.max = c2V(x+4 + 8, y+4 + 8);
+	box.min = c2V(x+4, y+4-16);
+	box.max = c2V(x+4 + 8, y+4 + 8-16);
 
 }
 

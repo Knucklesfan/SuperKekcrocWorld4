@@ -45,6 +45,9 @@
     <ClCompile Include="source\bluecoin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\titlescreen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\background.h">
@@ -81,6 +84,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\bluecoin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\titlescreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
