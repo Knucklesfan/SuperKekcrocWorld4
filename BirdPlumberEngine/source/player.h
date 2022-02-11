@@ -35,12 +35,12 @@ class Player
 		double vsp = 0; //current vertical speed
 		int facing = -1;
 
-		const double hsp_max = 3; // max speeds
-		const double vsp_max = 64;
+		const double hsp_max = 64; // max speeds
+		const double vsp_max = 128;
 		int slope_max = 2;    // Max climb distance
-		double accel = 1.5;
-		double fric = 0.8;
-		double grav = 0.6;
+		double accel = 3;
+		double fric = 10;
+		double grav = 1.0;
 private: 
 	int objectcollision(int x, int y, int w, int h, GameObject* obj);
 	int checkForCollision(int x, int y, int w, int h, std::vector<block*> colliders, int id);

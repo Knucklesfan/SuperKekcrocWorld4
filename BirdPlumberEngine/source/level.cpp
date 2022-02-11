@@ -34,6 +34,8 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug, std
         while (object) {
             if (!strcmp(object->type.ptr, "Player")) {
                 player = new Player(object->x, object->y, nullptr, render);
+                startx = object->x;
+                starty = object->y;
             }
             else if (!strcmp(object->type.ptr, "Coin")) {
                 objects.push_back(new coin(object->x, object->y, textures[0]));
@@ -154,7 +156,6 @@ void level::logic(double deltaTime) {
     for (GameObject* object : objects) {
         if (!object->active) {
             objects.erase(objects.begin() + iter);
-            free(object);
             break;
         }
         iter++;

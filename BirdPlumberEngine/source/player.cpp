@@ -13,7 +13,7 @@ void Player::render(SDL_Renderer* render, int viewx, int viewy) {
 	util::drawTexture(render, sprite, viewx+(x-9), viewy+(y-1), 0, 1.0, false, facing?SDL_FLIP_HORIZONTAL:SDL_FLIP_NONE,poses[pose].at((frametime/50)%poses[pose].size()) * 32, 0, 32, 32);
 }
 void Player::preStep(double deltaTime) {
-    frametime += deltaTime;
+    frametime += 4+((hsp/hsp_max)*2) * deltaTime;
 }
 
 void Player::postStep(double deltaTime, std::vector<GameObject*> objs, level* level) {
@@ -79,34 +79,34 @@ void Player::durangoController(std::vector<block*> colliders, int width, double 
         for (int i = 0; i < abs(hsp); i++) {
             if (onground) {
 
-                if (checkForCollision(x + sign(hsp) / deltaTime, y, 14, 30, colliders, 1)) {
-                    dy = calcSlopeUp(hsp / deltaTime, colliders);     // Measure the slope
+                if (checkForCollision(x + sign(hsp) * deltaTime, y, 14, 30, colliders, 1)) {
+                    dy = calcSlopeUp(hsp * deltaTime, colliders);     // Measure the slope
                     if (dy <= slope_max) // Climbable
                     {
-                        x += sign(hsp) / deltaTime;
-                        y -= dy / deltaTime;
+                        x += sign(hsp) * deltaTime;
+                        y -= dy * deltaTime;
                         continue;
                     }
                     hsp = 0; // Unclimbable
                     break;
                 }
-                else if (!checkForCollision(x + sign(hsp) / deltaTime, y + 1, 14, 30, colliders, 1)) // Down slope (just like we did up slopes)
+                else if (!checkForCollision(x + sign(hsp) * deltaTime, y + 1, 14, 30, colliders, 1)) // Down slope (just like we did up slopes)
                 {
-                    dy = calcSlopeDown(hsp / deltaTime, colliders);
+                    dy = calcSlopeDown(hsp * deltaTime, colliders);
                     if (dy <= slope_max)
                     {
-                        x += sign(hsp) / deltaTime;
-                        y += dy / deltaTime;
+                        x += sign(hsp) * deltaTime;
+                        y += dy * deltaTime;
                         continue;
                     }
-                    x += sign(hsp)/deltaTime; // Continue the loop rather than break the loop to keep momentum
+                    x += sign(hsp)*deltaTime; // Continue the loop rather than break the loop to keep momentum
                     continue;
                 }
-                else { x += sign(hsp) / deltaTime; } // Flat
+                else { x += sign(hsp) * deltaTime; } // Flat
             }
             else // We're in the air so we don't check for slopes
             {
-                if (!checkForCollision(x + sign(hsp) / deltaTime, y, 14, 30, colliders, 1)) x += sign(hsp) / deltaTime;
+                if (!checkForCollision(x + sign(hsp) * deltaTime, y, 14, 30, colliders, 1)) x += sign(hsp) * deltaTime;
                 else
                 {
                     hsp = 0;
@@ -114,10 +114,10 @@ void Player::durangoController(std::vector<block*> colliders, int width, double 
                 }
             }
         }
-        for (int i = 0; i < std::abs(vsp) / deltaTime; i++) // Vertical movement
+        for (int i = 0; i < std::abs(vsp); i++) // Vertical movement
         {
-            if (!checkForCollision(x, y + sign(vsp) / deltaTime, 14, 30, colliders, 1)) {
-                y += sign(vsp) / deltaTime;
+            if (!checkForCollision(x, y + sign(vsp) * deltaTime, 14, 30, colliders, 1)) {
+                y += sign(vsp) * deltaTime;
             }
             else
             {

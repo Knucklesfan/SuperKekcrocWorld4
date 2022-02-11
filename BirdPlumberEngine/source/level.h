@@ -33,6 +33,8 @@ class level : public scene {
         int viewy = 0;
         int width = 0;
         int height = 0;
+        int startx = 0;
+        int starty = 0;
         std::vector<std::vector<block*>> actAsVec;
         Player* player;
         message* messagebox;

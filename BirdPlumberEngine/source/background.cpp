@@ -181,15 +181,15 @@ void bg::render(SDL_Renderer* renderer, bool layer) {
 }
 void bg::logic(double deltatime)
 {
-    angle += deltatime / rate;
+    angle += deltatime * rate;
     //std::cout << angle << "\n";
 
     for (int i = 0; i < layers; i++) {
         if (incrementsx[i] != 0) {
-            layerposx[i] -= (deltatime) / (incrementsx[i]);
+            layerposx[i] -= (deltatime) * (incrementsx[i]);
         }
         if (incrementsy != 0) {
-            layerposy[i] -= (deltatime) / (incrementsy[i]);
+            layerposy[i] -= (deltatime) * (incrementsy[i]);
         }
 
     }

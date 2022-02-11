@@ -250,8 +250,9 @@ int main(int argc, char* argv[])
         };
         Mix_HaltMusic();
         Mix_PlayMusic(music[3], -1);
-
+        int lastfps = 0;
         while (!quit) {
+            Uint64 start = SDL_GetPerformanceCounter();
             while (SDL_PollEvent(&event)) {
                 if (event.type == SDL_QUIT) {
                     quit = true;
@@ -261,7 +262,7 @@ int main(int argc, char* argv[])
                 }
             }
 
-            deltaTime = calc_dt()*1000;
+            deltaTime = calc_dt();
             SDL_SetRenderTarget(renderer, rendertext);
             SDL_RenderClear(renderer);
 
@@ -278,9 +279,13 @@ int main(int argc, char* argv[])
             SDL_SetRenderTarget(renderer, NULL);
             SDL_RenderClear(renderer);
 
-
+            
             SDL_RenderCopy(renderer, rendertext, NULL, NULL);
+            fnts[0]->render(0,0,std::to_string(lastfps),false, renderer);
             SDL_RenderPresent(renderer);
+            Uint64 end = SDL_GetPerformanceCounter();
+            float elapsed = (end - start) / (float)SDL_GetPerformanceFrequency();
+            lastfps = 1.0f / elapsed;
 
         }
 }

@@ -41,7 +41,7 @@ void bgtextscene::logic(double deltatime) {
 	}
 	if (transitionalpha > 0.0 && down) {
 		msg->paused = true;
-		transitionalpha -= deltatime / 1500;
+		transitionalpha -= deltatime;
 	}
 	else if (transitionalpha <= 0.0 && down) {
 		down = false;
@@ -50,7 +50,7 @@ void bgtextscene::logic(double deltatime) {
 	}
 	if (transitionalpha < 1.0 && up) {
 		msg->paused = true;
-		transitionalpha += deltatime / 1500;
+		transitionalpha += deltatime;
 	}
 	else if (transitionalpha >= 1.0 && up) {
 		up = false;
@@ -63,12 +63,13 @@ void bgtextscene::logic(double deltatime) {
 		transitioning = false;
 
 	}
-	ticks += deltatime;
+	ticks += deltatime*1000;
 }
 void bgtextscene::keyPressed(SDL_Keycode key) {
 	if (key == SDLK_e) {
-		movebackgrounds(1);
+		endtick = 2;
 	}
+
 	int msgret = msg->keyPressed(key);
 	switch (msgret) {
 		case 3: {

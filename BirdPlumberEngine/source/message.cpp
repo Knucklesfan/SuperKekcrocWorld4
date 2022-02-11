@@ -155,7 +155,7 @@ void message::logic(double deltaTime) {
 
         if (!expand || hide) {
             if (hide) {
-                drawheight -= deltaTime / 2.5;
+                drawheight -= deltaTime * 100;
                 if (drawheight <= height) {
                     expand = false;
                     hide = false;
@@ -164,7 +164,7 @@ void message::logic(double deltaTime) {
                 }
             }
             else {
-                drawheight += deltaTime / 2.5;
+                drawheight += deltaTime * 100;
                 if (drawheight >= drawhei) {
                     expand = true;
                 }
@@ -172,7 +172,7 @@ void message::logic(double deltaTime) {
         }
         else {
             if (onscrnwrds.length() < towrite[currentword].length()) {
-                bliptime += deltaTime;
+                bliptime += deltaTime*100;
                 if (bliptime >= 10) {
                     if (towrite[currentword].at(onscrnwrds.length()) != '\n' || towrite[currentword].at(onscrnwrds.length()) != ' ') {
                         Mix_PlayChannel(1, sounds[1], 0);

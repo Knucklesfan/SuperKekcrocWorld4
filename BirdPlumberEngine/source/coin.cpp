@@ -19,7 +19,7 @@ void coin::render(SDL_Renderer* render, int viewx, int viewy) {
 }
 
 void coin::logic(double deltaTime) {
-	frametime += deltaTime/100;
+	frametime += deltaTime*100;
 }
 
 void coin::collided(GameObject* other, level* lvl) {
