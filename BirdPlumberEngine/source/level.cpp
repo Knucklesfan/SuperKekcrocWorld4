@@ -118,6 +118,13 @@ void level::render(SDL_Renderer* render) {
     text += " ";
     text += std::to_string(viewy);
     //std::cout << text << "\n";
+    block* play = gettile(player->x/16, player->y/16, 1);
+
+    SDL_Rect rend = {viewx + play->x,viewy + play->y,16,16};
+    SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
+    SDL_RenderDrawRect(render, &rend);
+    SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+
     if(player != nullptr) {
         player->render(render, viewx, viewy);
     }
@@ -172,3 +179,27 @@ cute_tiled_tile_descriptor_t* level::getTileAt(int index, cute_tiled_tile_descri
     }
     return NULL;
 }
+
+block* level::gettile(int x, int y, int layer) {
+    int pos = y * width + x % width;
+    std::cout << pos << "\n";
+    return actAsVec[layer].at(pos);
+}
+	uint_fast8_t get_slope(uint_fast16_t x, uint_fast16_t y)
+	{
+		/*
+			45
+		*/
+		if (tile == 0x1AA || tile == 0x1AB) { return 1; }
+		if (tile == 0x1AF || tile == 0x1B0) { return 2; }
+		/*
+			23
+		*/
+
+		if (tile == 0x196) { return 3; }
+		if (tile == 0x19B) { return 4; }
+
+		if (tile == 0x1A0) { return 5; }
+		if (tile == 0x1A5) { return 6; }
+		return 0;
+	}

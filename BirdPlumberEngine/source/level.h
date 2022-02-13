@@ -22,7 +22,7 @@ class level : public scene {
         std::vector<GameObject*> objects;
         std::vector<Mix_Music*> music;
         std::vector<Mix_Chunk*> sounds;
-
+        block* gettile(int x, int y, int layer);
         SDL_Texture* text;
         level(SDL_Renderer* render, std::string path, bg* backg, font* debug, std::vector<Mix_Chunk*> snds, std::vector<Mix_Music*> mus, std::vector<SDL_Texture*> textures);
         void render(SDL_Renderer* render);

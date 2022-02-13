@@ -51,6 +51,7 @@ double calc_dt()
 
 int main(int argc, char* argv[])
 {
+
         srand((unsigned)time(0));
         SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
         if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) != 0) {
@@ -248,6 +249,7 @@ int main(int argc, char* argv[])
             new bgtextscene(renderer, textures, backgs, sounds, music, fnts),
             new level(renderer,"./levels/testlevels/", backgs.at(0), fnts[0], sounds, music, textures),
         };
+        Mix_VolumeMusic(0);
         Mix_HaltMusic();
         Mix_PlayMusic(music[3], -1);
         int lastfps = 0;

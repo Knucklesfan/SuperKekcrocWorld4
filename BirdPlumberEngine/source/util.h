@@ -2,6 +2,8 @@
 #include <string>
 #include <iostream>
 #include <vector>
+
+
 namespace util {
 	void drawTexture(SDL_Texture* texture, int x, int y, double angle, double scale, bool center,  SDL_RendererFlip flip, SDL_Renderer* render); 
 	//old crappy draw texture which is boring and dumb
@@ -19,5 +21,7 @@ namespace util {
 	std::vector<std::string> seperateWords(std::string string, char sep, int);
 	std::string wrap(std::string str, int pixels);
 	int nthOccurrence(const std::string& str, const std::string& findMe, int nth);
-
+	
+	//gets a tile at coordinates in particular.
+	
 };
