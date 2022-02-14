@@ -1,4 +1,6 @@
-#include "level.h"
+#pragma once
+#include <SDL2/SDL.h>
+
 #define CHECKRANGE 2
 #define boundsx 6.0 
 #define boundsy 6.0
@@ -12,11 +14,17 @@
 #define button_start 7
 #define GRAVITY 96
 #define P_METER_REQUIRED 0x70
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
 
+enum slope {
+    SLOPEHIGHR = 1,
+    SLOPEHIGHL = 2,
+};
 #define Calculate_Speed(x) double(x) / 256.0 //didnt even know you could do this before writing this, 
 //but im gonna abuse the crap out of this functionality of cpp defines
-
-class player {
+class level;
+class mplayer {
 
     //ill be completely honest here: this is my translation of JFKMW's mario movement system
     //alongside my own interpretations of the SMW source and attempts to gain compatibility
@@ -38,7 +46,6 @@ class player {
     bool swim = false;
     bool oldswim = false;
     bool sliding = false;
-    level* lvl;
     unsigned int slopetype = 0;
     /*
     0 : None
@@ -52,8 +59,18 @@ class player {
 
     double hsp = 0.0;
     double vsp = 0.0;
+    double vanillax = 0; //this is the equivalent to 0x7B https://smwc.me/m/smw/ram/7E007B/
+    double vanillay = 0; //this is the equivalent to 0x7D https://smwc.me/m/smw/ram/7E007D/
+    
+    double camerax = 0; //the X position of the camera, in the player's view.
+    double cameray = 0; //the y position of the camera, in the player's view.
+    int xcam = 0; //this is the equivalent to 0x7E1411 https://smwc.me/m/smw/ram/7E1411/
+    int ycam = 0; //this is the equivalent to 0x7E1412 https://smwc.me/m/smw/ram/7E1411/
+    double smooth_camera_speed = 5; //TODO: tweak this number!
+
 
     double prvious_hsp = 0.0; //this is the last x speed, stored for whatever reason we need.
+    double prvious_vsp = 0.0; //this is the last y speed, stored for whatever reason we need.
 
     double height = 14.0;
 
@@ -85,256 +102,25 @@ class player {
     //EDIT: I take this back.
     bool lastjumped = false;
     bool cansprint = false;
+    bool smoothcam = true;
+    level* lvl;
+    mplayer(level* lev, double newx = 0.0, double newy = 0.0);
 
-    player(level* currlvl, double newx=0.0, double newy=0.0) {
-        x=newx;
-        y=newy;
-        lvl = currlvl;
-
-    }
-
-    void die() {
-        if(controllable && !dead) {
-            deathtime = y < -16.0 ? 150 : 32;
-            dead = true;
-        }
-    }
+    void die();
 
     //returns true if attack was vital enough to kill player, otherwise returns false.
 
-    bool hurt() {
-        if(!dead && invinc_frames <= 0) {
-            if(playerstate != 0) {
-                playerstate = 0;
-                invinc_frames = 90;
-            }
-            else {
-                die();
-                return true;
-            }
-        }
-        return false;
-    }
-    void respawn() {
-        x = lvl->startx;
-        y = lvl->starty;
-
-        deathtime = 0;
-        dead = false;
-        playerstate = 0;
-        hsp = 0;
-        vsp = 0;
-        spinjumping = false;
-        active = true;
-    }
-    void getinput() {
-        const Uint8* state = SDL_GetKeyboardState(NULL);
-        if(controllable) {
-            pad[button_y] = state[SDL_SCANCODE_A] || state[SDL_SCANCODE_X];
-            pad[button_b] = state[SDL_SCANCODE_Z];
-            pad[button_a] = state[SDL_SCANCODE_X];
-            pad[button_left] = state[SDL_SCANCODE_LEFT];
-            pad[button_right] = state[SDL_SCANCODE_RIGHT];
-            pad[button_up] = state[SDL_SCANCODE_UP];
-            pad[button_down] = state[SDL_SCANCODE_DOWN];
-
-        }
-    }
-    void stomp() {
-        //TODO: implement particles
-
-        if(!spinjumping) {
-            if(pad[button_b] || pad[button_a]) {
-                vsp = Calculate_Speed(1408); //I HAVE NO IDEA WHERE THESE NUMBERS COME FROM
-            }
-            else {
-                vsp = Calculate_Speed(800); //TODO: find where these numbers come from
-            }
-        } //looking at the original, I don't really see what the difference is between
-        //enemy jump and enemy jump spin. This might come up later, though, so i should
-        //be hesistant moving foward.
-
-
-        //...foward
-        //TODO: learn how to spell
-
-    }
-    int deathlogic() {
-        x += hsp;
-        y += vsp;
-
-        if(y < lvl->height-100) {
-            respawn(); //this is temporary
-            //TODO: handle what to do when the player dies
-        }
-        if(deathtime > 0) { // if we still gotta pay the time for the crime
-            deathtime--;
-            if(!deathtime && y > lvl->height-14) { //if the player STILL isn't freaking dead yet
-                vsp = Calculate_Speed(1280.0); //step on the gas baby
-            }
-        } 
-        if(!deathtime) {
-            vsp = Calculate_Speed(48.0);
-            vsp = std::max(-5.0, vsp);
-        }
-        else {
-            hsp = 0.0;
-            vsp = 0.0;
-        }
-    
-        //TODO: implement this
-        return 1;
-    
-    }
-
+    bool hurt();
+    void respawn();
+    void getinput();
+    void stomp();
+    int deathlogic();
+    void render(SDL_Renderer* render);
     //TODO: Implement grabbing
 
 
 
-    bool move(double movex, double movey, bool change = false) {
-        double newposx = x + movex;
-        double newposy = y + movey;
-        bool willreturn = true;
-        int blockposx = int(newposx/16);
-        int blockposy = int(newposy/16);
-
-        int startx = blockposx - CHECKRANGE;
-        int starty = blockposy - CHECKRANGE;
-
-        if (startx < 0) {
-            startx = 0;
-        }
-        if (starty < 0) {
-            starty = 0;
-        }
-
-        //in the original code im basing this on, this entire second is dedicated to sprites
-        //there's like 300 lines of sprite code
-        //although i find their sprite code really good, and would like to implement it myself
-        //i think that i will be better off handling sprites myself
-        //i might look there for a reference but outside of that, i think i'm better off
-        //writing my own for the time being
-        //TODO: implement sprite code
-
-        for (int xrange = startx; xrange < blockposx + CHECKRANGE; xrange++) {
-            for (int yrange = startx; yrange < blockposy + CHECKRANGE + (playerstate > 0); xrange++) {
-                //id just like to say, as a java developer for years, i love c++
-                //and i can finally say this
-                //i've gotten to that point wherein i love this language
-                //:)
-                double f_h = getfloory(newposx + 8.0 - (blockposx * 16), blockposx, blockposy);
-                double f_w = getfloorw(newposx, blockposy);
-                double BelowBlock = double(blockposy * 16) + (f_h - 16.0) - (height)-1;
-                double AboveBlock = double(blockposy * 16) + (f_h)-1;
-                double RightBlock = double(blockposx * 16) + f_w;
-                double LeftBlock = double(blockposx * 16) - f_w;
-                //TODO: figure out how this applies
-                //im most likely gonna have to wait until i can actually get 
-                //this in game to figure out how these work, 
-                //but still.
-                bool checkLeft = true;
-                bool checkRight = true;
-                bool checkBottom = true;
-                bool checkTop = true;
-
-                bool playHitSound = true;
-
-                if (swim && movey > 0.0) {
-                    if (lvl->gettile(blockposx, blockposy, 1) == 0) {
-                        if (pad[button_up] && (pad[button_b] || pad[button_a])) {
-                            vsp = Calculate_Speed(0x500+ (playerstate > 0) * 0x80);
-                            spinjumping = pad[button_a];
-
-                        }
-                        else {
-                            checkBottom = true;
-                            playHitSound = false;
-                        }
-                    }
-                }
-                if (newposx < RightBlock && newposx > LeftBlock && newposy < AboveBlock && newposy > BelowBlock) {
-                    //TODO: handle hurt blocks
-
-                    //TODO: handle block actions, right now
-                    //blocks can't be interacted with, nor can they
-                    //interact with the player.
-                    if (movex < 0.0 && checkRight) {
-                        if (newposx > RightBlock - boundsx) {
-                            newposx = RightBlock;
-                            willreturn = false;
-                            
-                            //TODO: block handling here too
-                        }
-                    }
-                    if (movex > 0.0 && checkLeft) {
-                        if (newposx < LeftBlock+ boundsx) {
-                            newposx = LeftBlock;
-                            willreturn = false;
-
-                            //TODO: block handling here too
-                        }
-                    }
-                    if (movey < 0.0 && checkTop) {
-                        double ybound = boundsy;
-                        int slope = get_slope(blockposx, blockposy);
-                        if (slope != 0) {
-                            ybound += 2;
-                        }
-                        if (newposy > AboveBlock - ybound) {
-                            willreturn = false;
-
-                            if (slope != 0 && slopetype == 0) {
-                                slopetype = slope;
-                            }
-
-                            if (vsp <= 0) {
-                                newposy = AboveBlock;
-                            }
-
-                            if ((spinjumping && lvl->gettile(blockposx, blockposy, 1)->actas == 0x11E) && playerstate > 0) { //TODO: change this number as well!
-                                //handle block processing
-                                vsp = Calculate_Speed(768);
-                                willreturn = true;
-                            }
-                            else {
-                                //handle block processing
-                            }
-                            if (pad[button_down]) {
-                                //ALLLL of this is pipe related
-                                //TODO: implement pipes
-                                //yeah, i know i said i didnt want pipes but uh
-                                //its just gonna be easier for the player tbh
-                                //I want pipes in the game, is that all it takes???
-
-                            }
-                        }
-                    }
-                    if (movey > 0.0 && checkBottom) {
-                        if (newposy < BelowBlock + boundsy) {
-                            newposy = BelowBlock;
-                            willreturn = false;
-                            if (playHitSound) {
-                                //PLAY A SOUND EFFECT
-                                //TODO: add sound effect to game
-                                //(this is easy stuff)
-
-                            }
-                            //once more, block processing needs to be done. we're waiting, knux
-                            if (pad[button_up]) {
-                                //MORE PIPE STUFF, WTF
-                                //TODO: pipes
-                            }
-                        }
-                    }
-                    //TODO: grabbing stuff too :(
-                }
-            }
-        }
-        x = newposx;
-        y = newposy;
-        return willreturn;
-
-    }
+    bool move(double movex, double movey, bool change = false);
     //now, this code is commented mainly because rendering isn't a focus right now.
     //it's 11:35pm, i just want to get the barebones down to finish this tomorrow.
 
@@ -491,193 +277,9 @@ class player {
 
     //
 
-    int logic() {
-        if (freezesprites) {
-            if (dead) {
-                return deathlogic();
-            }
-            return 1;
-        }
-        slopetype = 0;
-
-        getinput();
-        if (pad[button_y] != oldy) {
-            oldy = pad[button_y];
-            if (oldy) {
-                ypressed = true;
-            }
-        }
-
-        height = (playerstate > 0 && crouch == 0) ? 28.0 : 14.0;
-
-        if (y < -32.0 && !dead) { //IF YOU FIND A BUG, CHANGE THE Y NUMBER HERE!
-            die();
-        }
-        if (dead) {
-            return deathlogic();
-        }
-        if (invinc_frames > 0) {
-            invinc_frames--;
-        }
-        hide = invinc_frames > 0 ? !hide : false; //alright, ngl, i picked a bad name
-        //YES, HIDE MAKES YOU INVISIBLE. STOP ASKING.
-
-        double gravity = -double(GRAVITY);
-        bool running = false;
-        bool moving = false;
-        bool shs = false; //SLIGHT HIGH SPEED.. whatever that means
-
-        int checkx1 = int((x + 8) / 16.0);
-        int checky1 = int((y + height) / 16.0);
-
-        swim = lvl->gettile(checkx1, checky1, 1)->actas < 4;
-        if (swim != oldswim) {
-            oldswim = swim;
-            if (swim) {
-                vsp = 0;
-                hsp = 0;
-                pmeter = 0;
-
-                //TODO: particles
-            }
-        }
-        //TODO: pipes
-        if (false) { // replace with pipes plz
-
-        }
-        else {
-            if (!swim) {
-                if (onGround) { //clearing stuff
-                    cansprint = false;
-                }
-
-                onGround = false; 
-                if (!move(0.0, -1.0, true)) { //checks for floors
-                    if (vsp <= 0) {
-                        onGround = true;
-                        spinjumping = false;
-                    }
-                    else {
-                        y += 1;
-                    }
-                }
-                else { //no floor no pinecones
-                    y += 1; //lol get dropped
-                }
-                skidding = 0;
-                if (abs(hsp) >= Calculate_Speed(576.0)) {
-                    shs = true; //lol i dont know what this means
-                    //its 12:03 am
-                    // i wanna bed 
-                    //TODO: go to bed
-
-                    if (pad[button_y] && (pad[button_left] || pad[button_right])) {
-                        if (cansprint || (onGround && !crouch)) {
-                            pmeter += 2;
-                            if (pmeter > P_METER_REQUIRED) {
-                                pmeter = P_METER_REQUIRED;
-                            }
-                        }
-                        else {
-                            if (pmeter > 0) {
-                                pmeter--;
-                            }
-                        }
-                    }
-                }
-                else {
-                    if (pmeter > 0) {
-                        pmeter--;
-                    }
-                }
-                if (pmeter >= (P_METER_REQUIRED - 1) && pad[button_y]) {
-                    cansprint = true;
-                }
-                if (pad[button_left]) {
-                    walk_dir = -1;
-                    moving = true;
-                }
-                if (pad[button_right]) {
-                    walk_dir = 1;
-                    moving = true;
-
-                }
-                //this is code for slide cancelling
-
-                if (sliding) {
-                    if ((moving == true || (hsp == 0 && !slopetype)) && onGround) {
-                        sliding = false;
-                    }
-                }
-                if (pad[button_down] && !sliding) { //if we arent sliding, but we wanna slide
-                    if (slopetype != 0) {
-                        //handle grabbing stuff
-                        if (moving == false && !(pad[button_left] || pad[button_right])) {
-                            sliding = true;
-                        }
-                        else {
-                            crouch = false;
-                        }
-                    }
-                    else {
-                        if (onGround) {
-                            walk_dir = 0;
-                            moving = true;
-                            crouch = true;
-                        }
-                    }
-                }
-                else {
-                    if (onGround) {
-                        crouch = false;
-                    }
-                }
-                if (pad[button_y]) {
-                    running = true;
-                }
-
-                if ((pad[button_a] || pad[button_b]) != lastjumped) {
-                    lastjumped = pad[button_a] || pad[button_b];
-                    if (lastjumped && onGround) {
-                        if (pad[button_a])
-                        {
-                            sliding = false;
-                            //Spinjump
-                            vsp = Calculate_Speed(1136.0 + (abs(hsp) * 64.0)); //(148.0 * SLIGHT_HIGH_SPEED) + (32.0 * (X_SPEED > Calculate_Speed(320+256+176)))
-                            //TODO: play sound here
-                            spinjumping = true;
-                        }
-                        else
-                        {
-                            sliding = false;
-                            //Normal jump
-                            vsp = Calculate_Speed(1232.0 + (abs(hsp) * 64.0)); //(148.0 * SLIGHT_HIGH_SPEED) + (32.0 * (X_SPEED > Calculate_Speed(320+256+176)))
-                            //TODO: play sound here
-
-                            //jump_is_spin = false;
-                        }
-                    }
-                }
-                /*
-                okay, so since it's late, and ive been up all night, this is where
-                i call it quits for the night. Current state of code:
-                * got a little bit of the logic working, but not much yet
-                * need to implement player physics.
-                * currently on line 1135 of player movement code
-                to people from the future reading this: Hello!
-                I really hope this game is a success, and I really want to tell everyone
-                that I send my regards, and hope you enjoy kekcroc world 4
-                i mean
-                its not really about that, since yknow
-                kekcroc world 4 is just one of the games im making this engine for
-                but i really hope this engine provides a lot of people with fun times
-                for years to come.
-                
-                */
-            }
-        }
-
-    }
+    int logic();
+    void cameralogic();
+    int process();
 
 
 
@@ -690,87 +292,14 @@ class player {
     //guess i just hate myself lmao
 
 
-    double getfloory(double truex, int blockx, int blocky) {
-        int tileid = lvl->gettile(blockx, blocky, 1)->actas;
-        if (tileid == 0x1AA || tileid == 0x1AB) //45* slope Right
-        {
-            if (truex < 0 || truex > 16) {
-                return -9999; 
-            }
-            return truex;
-        }
-        if (tileid == 0x1AF || tileid == 0x1B0) //45* slope Left
-        {
-            if (truex < 0 || truex > 16) {
-                return -9999; 
-            }
-            return 16.0 - truex;
-        }
-        if (tileid == 0x196) //23* slope Right P1
-        {
-            if (truex < 0 || truex > 16) {
-                return -9999; 
-            }
-            return truex / 2;
-        }
-        if (tileid == 0x19B) //23* slope Right P2
-        {
-            if (truex < 0 || truex > 16) {
-                return -9999; 
-            }
-            return 8.0 + truex / 2;
-        }
-        if (tileid == 0x1A0) //23* slope Left P1
-        {
-            if (truex < 0 || truex > 16) {
-                return -9999; 
-            }
-            return 16.0 - truex / 2;
-        }
-        if (tileid == 0x1A5) //23* slope Left P2
-        {
-            if (truex < 0 || truex > 16) {
-                return -9999; 
-            }
-            return 8.0 - truex / 2;
-        }
-        return 16.0;
-    }
-    double getfloorw(int blockx, int blocky) { 
-
-        int tileid = lvl->gettile(blockx, blocky, 1)->actas;
-        if ((tileid == 0x1AA || tileid == 0x1AB) || (tileid == 0x1AF || tileid == 0x1B0)) {
-            return 16.0;
-        }
-        if ((tileid == 0x1A0 || tileid == 0x1A5) || (tileid == 0x196 || tileid == 0x19B)) {
-            return 16.0;
-        }
-        return 15.0;
-    }
+    double getfloory(double truex, int blockx, int blocky);
+    double getfloorw(int blockx, int blocky);
 
     //i lifted this straight from jfkmw, but that's okay because
     //i completely understand how this works
     //also, all of these numbers WILL change whenever i implement slopes,
     //just havent gotten around to that yet, okay?
-    int get_slope(int blockx, int blocky)
-    {
-        int tileid = lvl->gettile(blockx, blocky, 1)->actas;
-        /*
-            45
-        */
-        if (tileid == 0x1AA || tileid == 0x1AB) { return 1; }
-        if (tileid == 0x1AF || tileid == 0x1B0) { return 2; }
-        /*
-            23
-        */
-
-        if (tileid == 0x196) { return 3; }
-        if (tileid == 0x19B) { return 4; }
-
-        if (tileid == 0x1A0) { return 5; }
-        if (tileid == 0x1A5) { return 6; }
-        return 0;
-    }
+    int get_slope(int blockx, int blocky);
 
 
 

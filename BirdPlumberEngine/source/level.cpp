@@ -33,6 +33,7 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug, std
 		// do something with the tile data
         while (object) {
             if (!strcmp(object->type.ptr, "Player")) {
+                mario = new mplayer(this, object->x, object->y);
                 player = new Player(object->x, object->y, nullptr, render);
                 startx = object->x;
                 starty = object->y;
@@ -49,7 +50,9 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug, std
         for(int i = 0; i < data_count; i++) {
             cute_tiled_tile_descriptor_t* tile = getTileAt(data[i] - 1, map->tilesets->tiles);
             if (tile) {
+                std::cout << tile->type.ptr;
                 std::string tadd = tile->type.ptr;
+
                 vecint.push_back(
                     new block(
                         (i % width) * map->tilewidth,
@@ -59,12 +62,13 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug, std
                 );
             }
             else {
+                std::cout << "025";
                 vecint.push_back(
                     new block(
                         (i % width) * map->tilewidth,
                         (i / width) * map->tileheight,
                         map->tilewidth, map->tileheight,
-                        0)
+                        25)
                 );
                 //std::cout << "{" << vecint.back()->collider.min.x << "," << vecint.back()->collider.min.y << "},{" << vecint.back()->collider.max.x << "," << vecint.back()->collider.max.y << "}\n";
             }
@@ -91,7 +95,7 @@ level::level(SDL_Renderer* render, std::string path, bg* backg, font* debug, std
                 */
                 //debug->render((i % width) * map->tilewidth, (i / width) * map->tileheight, std::to_string(vecint.at(i)->actas), false, render);
         }
-
+        
 		layer = layer->next;
         wd++;
         actAsVec.push_back(vecint);
@@ -120,13 +124,15 @@ void level::render(SDL_Renderer* render) {
     //std::cout << text << "\n";
     block* play = gettile(player->x/16, player->y/16, 1);
 
-    SDL_Rect rend = {viewx + play->x,viewy + play->y,16,16};
+    SDL_Rect rend = {viewx + mario->x,viewy + mario->y,16,16};
     SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
     SDL_RenderDrawRect(render, &rend);
     SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 
     if(player != nullptr) {
         player->render(render, viewx, viewy);
+        mario->render(render);
+
     }
     debugfont->render(8,8,text,false, render);
     messagebox->render(render);
@@ -141,9 +147,16 @@ void level::logic(double deltaTime) {
     if(!messagebox->active) {
 
         if (player != nullptr) {
-            player->preStep(deltaTime);
-            player->durangoController(actAsVec.at(1), width, deltaTime);
-            player->postStep(deltaTime, objects, this);
+            //mario->logic();
+            mario->logic();
+            mario->cameralogic();
+            std::cout << mario->x << " " << mario->y << "\n";
+            //player->preStep(deltaTime);
+            //player->durangoController(actAsVec.at(1), width, deltaTime);
+            //player->postStep(deltaTime, objects, this);
+            viewx = -(mario->x - 200);
+            viewy = -(mario->y - 120);
+            /*
             if (-(player->x - 200 < 0)) {
                 viewx = 0;
             }
@@ -151,6 +164,8 @@ void level::logic(double deltaTime) {
                 viewx = -(player->x - 200);
             }
             viewy = -(player->y - 120);
+            */
+
         }
         for (GameObject* object : objects) {
                 object->logic(deltaTime);
@@ -182,24 +197,6 @@ cute_tiled_tile_descriptor_t* level::getTileAt(int index, cute_tiled_tile_descri
 
 block* level::gettile(int x, int y, int layer) {
     int pos = y * width + x % width;
-    std::cout << pos << "\n";
+    //std::cout << pos << "\n";
     return actAsVec[layer].at(pos);
 }
-	uint_fast8_t get_slope(uint_fast16_t x, uint_fast16_t y)
-	{
-		/*
-			45
-		*/
-		if (tile == 0x1AA || tile == 0x1AB) { return 1; }
-		if (tile == 0x1AF || tile == 0x1B0) { return 2; }
-		/*
-			23
-		*/
-
-		if (tile == 0x196) { return 3; }
-		if (tile == 0x19B) { return 4; }
-
-		if (tile == 0x1A0) { return 5; }
-		if (tile == 0x1A5) { return 6; }
-		return 0;
-	}

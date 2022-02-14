@@ -14,6 +14,7 @@
 #include "message.h"
 #include "coin.h"
 #include "bluecoin.h"
+#include "mario.h"
 
 class level : public scene {
     public:
@@ -36,6 +37,7 @@ class level : public scene {
         int startx = 0;
         int starty = 0;
         std::vector<std::vector<block*>> actAsVec;
+        mplayer* mario;
         Player* player;
         message* messagebox;
         std::vector<std::string> words = {
