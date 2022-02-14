@@ -116,12 +116,14 @@ int mplayer::deathlogic() {
 
 
 bool mplayer::move(double movex, double movey, bool change) {
-
+    height = (playerstate > 0 && (!crouch || spinjumping)) ? 28.0 : 14.0;
     double NewPositionX = x + hsp;
     double NewPositionY = y + vsp;
     bool willreturn = true;
+
     int_fast16_t PosXBlock = int_fast16_t(NewPositionX / 16);
     int_fast16_t PosYBlock = int_fast16_t(NewPositionY / 16);
+
     int_fast16_t startX = PosXBlock - CHECKRANGE;
     if (startX < 0)
         startX = 0;
@@ -142,6 +144,7 @@ bool mplayer::move(double movex, double movey, bool change) {
             bool checkRight = true;
             bool checkBottom = true; //this might be the problem
             bool checkTop = true;
+            uint_fast8_t new_s = get_slope(xB, yB);
             if (block->actas == 25 || block->actas == 0) {
                 checkLeft = false;
                 checkRight = false;
@@ -160,7 +163,7 @@ bool mplayer::move(double movex, double movey, bool change) {
 
             if (swim && vsp > 0.0)
             {
-                if (lvl->gettile(xB, yB,1)->actas == 0)
+                if (lvl->gettile(xB, yB,1)->actas == 25)
                 {
                     if (pad[button_up] && (pad[button_b] || pad[button_a]))
                     {
@@ -191,36 +194,13 @@ bool mplayer::move(double movex, double movey, bool change) {
                 map16_handler.process_block(xB, yB, inside);
                 */
 
-                if (hsp < 0.0 && checkRight)
+                if (hsp < 0.0 && checkRight && NewPositionX < RightBlock && x >= RightBlock)
                 {
-                    if (NewPositionX > RightBlock - boundsx)
-                    {
-                        NewPositionX = RightBlock;
-                        willreturn = false;
-
-                        //map16_handler.process_block(xB, yB, right, pressed_y);
-                        /* also, implement pipes please!
-                        if (pad[button_left])
-                        {
-                            if (
-                                lvl->gettile(xB, yB,1) == 319 &&
-                                onGround
-                                )
-                            {
-                                in_pipe = true;
-                                pipe_speed_x = -2;
-                                pipe_speed_y = 0;
-
-                                ASM.Write_To_Ram(0x1DF9, 0x4, 1);
-                            }
-                        }
-                        */
-                    }
+                    NewPositionX = RightBlock;
+                    willreturn = false;
                 }
-                if (hsp > 0.0 && checkLeft)
+                if (hsp > 0.0 && checkLeft && NewPositionX > LeftBlock && x <= LeftBlock)
                 {
-                    if (NewPositionX < LeftBlock + boundsx)
-                    {
                         NewPositionX = LeftBlock;
                         willreturn = false;
                         //map16_handler.process_block(xB, yB, left, pressed_y);
@@ -239,32 +219,19 @@ bool mplayer::move(double movex, double movey, bool change) {
                             }
                         }
                         */
-                    }
                 }
-                if (vsp < 0.0 && checkTop)
+                double AboBlockCheck = AboveBlock - ((new_s || slopetype) ? (3.0 + abs(hsp)) : 0);
+                if (vsp < 0.0 && checkTop && NewPositionY < AboveBlock && y >= AboBlockCheck)
                 {
-                    double bound_y = boundsy;
-                    uint_fast8_t new_s = get_slope(xB, yB);
-                    if (new_s != 0)
-                    {
-                        bound_y += 2;
-                    }
-                    if (NewPositionY > AboveBlock - bound_y)
-                    {
-                        willreturn = false;
-
+                    NewPositionY = AboveBlock;
+                    willreturn = false;
+                    uint_fast8_t new_s = get_slope(xB,yB);
 
                         if (new_s != 0 && slopetype == 0)
                         {
                             slopetype = new_s;
                         }
-
-                        if (vsp <= 0)
-                        {
-                            NewPositionY = AboveBlock;
-                        }
-
-                        if ((spinjumping && lvl->gettile(xB, yB,1)->actas == 286) && playerstate > 0)
+                        if ((spinjumping && lvl->gettile(xB, yB,1)->actas == 286) && playerstate > 0) //this is for blocks like the turnblock. 
                         {
                             //map16_handler.process_block(xB, yB, top, pressed_y, true);
                             vsp = Calculate_Speed(768);
@@ -291,32 +258,21 @@ bool mplayer::move(double movex, double movey, bool change) {
                         */
                     }
                 }
-                if (vsp > 0.0 && checkBottom)
+                if (vsp > 0.0 && checkBottom && NewPositionY > BelowBlock && y <= BelowBlock)
                 {
-                    if (NewPositionY < BelowBlock + boundsy)
-                    {
-                        NewPositionY = BelowBlock;
-                        willreturn = false;
-
-
-                        if (playHitSound)
-                        {
-                            //TODO: sounds
-                        }
-                        //map16_handler.process_block(xB, yB, bottom);
-                        if (pad[button_up])
-                        {
-                            //TODO: pipes
-                        }
-                    }
+                    NewPositionY = BelowBlock;
+                    willreturn = false;
+                    //handle block being hit from bottom here!
                 }
 
             }
         }
-    }
 
-    x = NewPositionX;
-    y = NewPositionY;
+    if (!change)
+    {
+        x = NewPositionX;
+        y = NewPositionY;
+    }
     return willreturn;
 }
 //now, this code is commented mainly because rendering isn't a focus right now.
@@ -491,6 +447,7 @@ int mplayer::logic() {
     slopetype = 0;
 
     getinput();
+
     if (pad[button_y] != oldy) {
         oldy = pad[button_y];
         if (oldy) {
@@ -500,7 +457,7 @@ int mplayer::logic() {
 
     height = (playerstate > 0 && crouch == 0) ? 28.0 : 14.0;
 
-    if (y < -lvl->height-32.0 && !dead) { //IF YOU FIND A BUG, CHANGE THE Y NUMBER HERE!
+    if (y > lvl->height+32.0 && !dead) { //IF YOU FIND A BUG, CHANGE THE Y NUMBER HERE!
         die();
     }
     if (dead) {
@@ -512,13 +469,13 @@ int mplayer::logic() {
     hide = invinc_frames > 0 ? !hide : false; //alright, ngl, i picked a bad name
     //YES, HIDE MAKES YOU INVISIBLE. STOP ASKING.
 
-    double gravity = -double(GRAVITY);
-    bool running = false;
+    double GRAV =  (spinjumping ? pad[button_a] : true) ? 0.0 : -double(96) / (1 + (pad[button_a] || pad[button_b]));
+    bool running = pad[button_y];
     bool moving = false;
     bool shs = false; //SLIGHT HIGH SPEED.. whatever that means
 
     int checkx1 = int((x + 8) / 16.0);
-    int checky1 = int((y + height) / 16.0);
+    int checky1 = int((y + height - 1) / 16.0);
 
     swim = lvl->gettile(checkx1, checky1, 1)->actas < 4;
     if (swim != oldswim) {
@@ -536,7 +493,20 @@ int mplayer::logic() {
 
     }
     else {
+        onGround = false;
+        if (!move(0.0, -1.0, true) && vsp <= 0) { //Detected a floor below
+            onGround = true;
+            spinjumping = false;
+        }
         if (!swim) {
+            /*
+            End of yet another day, and im leaving myself yet another comment to remind myself:
+            you're current on line 1049 of the NEW (https://github.com/AVeryPainedRaspcallion/RaspcallionJFKMW/blob/main/src/player.h) player controller
+            you need to get in contact with the team and see if this is okay, open sourcing the game is all fun and games, but open sourcing
+            the assets is not gonna be where it's at.
+            
+            
+            */
             if (onGround) { //clearing stuff
                 cansprint = false;
             }

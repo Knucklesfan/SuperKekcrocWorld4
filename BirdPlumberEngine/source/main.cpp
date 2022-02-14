@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 
         srand((unsigned)time(0));
         SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
-        if (SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) != 0) {
+        if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
             std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 
             return 1;
@@ -253,7 +253,9 @@ int main(int argc, char* argv[])
         Mix_HaltMusic();
         Mix_PlayMusic(music[3], -1);
         int lastfps = 0;
+        int FPS = 60;
         while (!quit) {
+            Uint32 start_time = SDL_GetTicks();
             Uint64 start = SDL_GetPerformanceCounter();
             while (SDL_PollEvent(&event)) {
                 if (event.type == SDL_QUIT) {
@@ -285,6 +287,10 @@ int main(int argc, char* argv[])
             SDL_RenderCopy(renderer, rendertext, NULL, NULL);
             fnts[0]->render(0,0,std::to_string(lastfps),false, renderer);
             SDL_RenderPresent(renderer);
+            if (Uint32(1000 / FPS) > (SDL_GetTicks() - start_time))
+            {
+                SDL_Delay((1000 / FPS) - (SDL_GetTicks() - start_time));
+            }
             Uint64 end = SDL_GetPerformanceCounter();
             float elapsed = (end - start) / (float)SDL_GetPerformanceFrequency();
             lastfps = 1.0f / elapsed;
