@@ -1,5 +1,5 @@
-OBJS	= background.o font.o main.o util.o message.o bgtextscene.o level.o player.o coin.o bluecoin.o titlescreen.o
-SOURCE	= source/level.cpp source/background.cpp source/font.cpp source/main.cpp source/util.cpp source/message.cpp source/bgtextscene.cpp source/player.cpp
+OBJS	= background.o font.o main.o util.o message.o bgtextscene.o level.o player.o coin.o bluecoin.o titlescreen.o mario.o
+SOURCE	= source/level.cpp source/background.cpp source/font.cpp source/main.cpp source/util.cpp source/message.cpp source/bgtextscene.cpp source/player.cpp source/mario.cpp
 HEADER	= 
 OUT	= skw
 CC	 = g++
@@ -16,6 +16,9 @@ background.o: source/background.cpp
 
 player.o: source/player.cpp
 	$(CC) $(FLAGS) source/player.cpp 
+
+mario.o: source/mario.cpp
+	$(CC) $(FLAGS) source/mario.cpp 
 
 message.o: source/message.cpp
 	$(CC) $(FLAGS) source/message.cpp 

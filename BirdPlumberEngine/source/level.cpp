@@ -150,7 +150,7 @@ void level::logic(double deltaTime) {
             //mario->logic();
             mario->logic();
             mario->cameralogic();
-            std::cout << mario->x << " " << mario->y << "\n";
+            //std::cout << mario->x << " " << mario->y << "\n";
             //player->preStep(deltaTime);
             //player->durangoController(actAsVec.at(1), width, deltaTime);
             //player->postStep(deltaTime, objects, this);

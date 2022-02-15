@@ -14,8 +14,8 @@
 #define button_start 7
 #define GRAVITY 96
 #define P_METER_REQUIRED 0x70
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#define marmin(a,b)            (((a) < (b)) ? (a) : (b))
+#define marmax(a,b)            (((a) > (b)) ? (a) : (b))
 
 enum slope {
     SLOPEHIGHR = 1,
@@ -46,6 +46,7 @@ class mplayer {
     bool swim = false;
     bool oldswim = false;
     bool sliding = false;
+    bool climbing = false;
     unsigned int slopetype = 0;
     /*
     0 : None

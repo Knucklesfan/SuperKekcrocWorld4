@@ -10,7 +10,7 @@ Player::Player(int xa, int ya, SDL_Texture* sheet, SDL_Renderer* render) {
     SDL_FreeSurface(surf);
 }
 void Player::render(SDL_Renderer* render, int viewx, int viewy) {
-	util::drawTexture(render, sprite, viewx+(x-9), viewy+(y-1), 0, 1.0, false, facing?SDL_FLIP_HORIZONTAL:SDL_FLIP_NONE,poses[pose].at((frametime/50)%poses[pose].size()) * 32, 0, 32, 32);
+	util::drawTexture(render, sprite, viewx+(x-9), viewy+(y-1), 0, 1.0, false, facing?SDL_FLIP_HORIZONTAL:SDL_FLIP_NONE,poses[0].at(0) * 32, 0, 32, 32);
 }
 void Player::preStep(double deltaTime) {
     frametime += 4+((hsp/hsp_max)*2) * deltaTime;

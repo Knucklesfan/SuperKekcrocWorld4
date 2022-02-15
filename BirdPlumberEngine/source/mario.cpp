@@ -100,7 +100,7 @@ int mplayer::deathlogic() {
     }
     if (!deathtime) {
         vsp = Calculate_Speed(48.0);
-        vsp = max(-5.0, vsp);
+        vsp = marmax(-5.0, vsp);
     }
     else {
         hsp = 0.0;
@@ -364,7 +364,7 @@ void mplayer::render(SDL_Renderer* render) {
                         NewSprite = "JUMPB";
                     }
                     else {
-                        if (Y_SPEED > 0.0) {
+                        if (vsp > 0.0) {
                             NewSprite = "JUMP";
                         }
                         else {
@@ -376,8 +376,8 @@ void mplayer::render(SDL_Renderer* render) {
         }
         else {
             if (SKIDDING == 0) {
-                if (X_SPEED != 0) {
-                    FRM += X_SPEED / 5;
+                if (hsp != 0) {
+                    FRM += hsp / 5;
                     int Frame = abs(int(FRM) % (2 + (STATE > 0)));
                     if (GRABBED_SPRITE != 0xFF)
                     {
@@ -457,10 +457,12 @@ int mplayer::logic() {
 
     height = (playerstate > 0 && crouch == 0) ? 28.0 : 14.0;
 
-    if (y > lvl->height+32.0 && !dead) { //IF YOU FIND A BUG, CHANGE THE Y NUMBER HERE!
+    if (y < -90 && !dead) { //IF YOU FIND A BUG, CHANGE THE Y NUMBER HERE!
+        std::cout << "WTF BOOOOOOOOM" << "\n";
         die();
     }
     if (dead) {
+        std::cout << "this previous error message brough to you by the cringe club\n";
         return deathlogic();
     }
     if (invinc_frames > 0) {
@@ -507,390 +509,374 @@ int mplayer::logic() {
             
             
             */
-            if (onGround) { //clearing stuff
-                cansprint = false;
-            }
 
-            onGround = false;
-            if (!move(0.0, 1.0, true)) { //checks for floors
-                if (vsp >= 0) {
-                    onGround = true;
-                    spinjumping = false;
+           if(!climbing) { // completely regular person movement
+
+                if(onGround) {
+                    cansprint = false;
                 }
+                skidding = 0;
+                shs = abs(hsp) >= Calculate_Speed(576.0);
+                if(shs && 
+                (cansprint || (onGround && !crouch) && 
+                pad[button_y] && 
+                (pad[button_left] || pad[button_right]))) {
+                    pmeter = marmin(P_METER_REQUIRED, pmeter+2);
+                } //biggest freaking if statement i've ever seen
                 else {
-                    y -= 1;
-                }
-            }
-            else { //no floor no pinecones
-                y -= 1; //lol get dropped
-            }
-            skidding = 0;
-            if (abs(hsp) >= Calculate_Speed(576.0)) {
-                shs = true; //lol i dont know what this means
-                //its 12:03 am
-                // i wanna bed 
-                //TODO: go to bed
-
-                if (pad[button_y] && (pad[button_left] || pad[button_right])) {
-                    if (cansprint || (onGround && !crouch)) {
-                        pmeter += 2;
-                        if (pmeter > P_METER_REQUIRED) {
-                            pmeter = P_METER_REQUIRED;
-                        }
-                    }
-                    else {
-                        if (pmeter > 0) {
-                            pmeter--;
-                        }
+                    if(pmeter > 0) {
+                        pmeter--;
                     }
                 }
-            }
-            else {
-                if (pmeter > 0) {
-                    pmeter--;
+                //this is yet another thing SMW doesnt really make clear
+                //there IS a real P-Meter hidden in code, just not shown
+                //quite frankly, you didnt really need to see the p-meter
+                //in SMW, which makes sense, but still
+                //very neat this is implemented here, cuz yknow
+                //otherwise the physics would be jank as hell
+                if(pmeter >= P_METER_REQUIRED && pad[button_y]) {
+                    cansprint = true;
                 }
-            }
-            if (pmeter >= (P_METER_REQUIRED - 1) && pad[button_y]) {
-                cansprint = true;
-            }
-            if (pad[button_left]) {
-                walk_dir = -1;
-                moving = true;
-            }
-            if (pad[button_right]) {
-                walk_dir = 1;
-                moving = true;
+                moving = pad[button_left] || pad[button_right];
 
-            }
-            //this is code for slide cancelling
+                if(pad[button_left]) {
+                    walk_dir = -1;
+                }
+                if(pad[button_right]) {
+                    walk_dir = 1;
+                }
+            					//Slide cancel
+					if (sliding) {
+						if ((moving || (hsp == 0 && !slopetype)) && onGround) {
+							sliding = false;
+						}
+					}
+					//Crouching
+					if (pad[button_down] && !sliding) {
+						if (slopetype != 0) {
+							if (true) { //TODO: implement grabbing!!!!! PLEASE
+                            //FOR THE LOVE OF GOD
+                            //IMPLEMENT GRABBING YOU BLOCK
+								if (!moving && !(pad[button_left] || pad[button_right])) {
+									sliding = true;
+								}
+								else {
+									crouch = false;
+								}
+							}
+							else {
+								walk_dir = 0; moving = false; crouch = true;
+							}
+						}
+						else {
+							if (onGround) {
+								walk_dir = 0; moving = true; crouch = true;
+							}
+						}
+					}
+					else {
+						if (onGround) {
+							crouch = false;
+						}
+					}
 
-            if (sliding) {
-                if ((moving == true || (hsp == 0 && !slopetype)) && onGround) {
-                    sliding = false;
-                }
-            }
-            if (pad[button_down] && !sliding) { //if we arent sliding, but we wanna slide
-                if (slopetype != 0) {
-                    //handle grabbing stuff
-                    if (moving == false && !(pad[button_left] || pad[button_right])) {
-                        sliding = true;
-                    }
-                    else {
-                        crouch = false;
-                    }
-                }
-                else {
-                    if (onGround) {
-                        walk_dir = 0;
-                        moving = true;
-                        crouch = true;
-                    }
-                }
-            }
-            else {
-                if (onGround) {
-                    crouch = false;
-                }
-            }
-            if (pad[button_y]) {
-                running = true;
-            }
+					bool isJumping = pad[button_b] || pad[button_a];
+					if (isJumping != lastjumped) {
+						lastjumped = isJumping;
+						if (isJumping && onGround) {
+							sliding = false;
+							if (playerstate == 2 && cansprint) { /*IMPLEMENT POWERUPS*/}
+							if (pad[button_a] /*&& GRABBED_SPRITE == 0xFF*/) {
+								//Spinjump
+								vsp = Calculate_Speed(1136.0 + (abs(hsp) * 64.0));
+								//RAM[0x1DFC] = 0x04; PLAY SOUND EFFECT HERE
+								spinjumping = true;
+							}
+							else {
+								//Normal jump
+								vsp = Calculate_Speed(1232.0 + (abs(hsp) * 64.0));
+								//RAM[0x1DFA] = 0x01; PLAY YET ANOTHER SOUND EFFECT
+							}
+						}
+					}
 
-            if ((pad[button_a] || pad[button_b]) != lastjumped) {
-                lastjumped = pad[button_a] || pad[button_b];
-                if (lastjumped && onGround) {
-                    if (pad[button_a])
-                    {
-                        sliding = false;
-                        //Spinjump
-                        vsp = -Calculate_Speed(1136.0 + (abs(hsp) * 64.0)); //(148.0 * SLIGHT_HIGH_SPEED) + (32.0 * (X_SPEED > Calculate_Speed(320+256+176)))
-                        //TODO: play sound here
-                        spinjumping = true;
-                    }
-                    else
-                    {
-                        sliding = false;
-                        //Normal jump
-                        vsp = -Calculate_Speed(1232.0 + (abs(hsp) * 64.0)); //(148.0 * SLIGHT_HIGH_SPEED) + (32.0 * (X_SPEED > Calculate_Speed(320+256+176)))
-                        //TODO: play sound here
+					double SLOPE_ADD = 0;
+					if (!sliding) {
+						if (slopetype == 1) {
+							if (!moving || (walk_dir == -1 && moving)) { SLOPE_ADD = Calculate_Speed(-256); }
+							if (moving) { SLOPE_ADD = Calculate_Speed(-80); }
+						}
+						if (slopetype == 2) {
+							if (!moving || (walk_dir == 1 && moving)) { SLOPE_ADD = Calculate_Speed(256); }
+							if (moving) { SLOPE_ADD = Calculate_Speed(80); }
+						}
+					}
 
-                    }
-                }
-            }
-            if (pad[button_a] || pad[button_b]) {
-                //this is actually a little known SMW feature i only learned about
-                //a few years ago! holding A or B slows your fall
-                //very interesting that like barely anyone knows about this
-                //might need to tweak this number for kekcroc world 4
-                gravity = gravity * 0.5;
-            }
-            double slopeadd = 0;
-            if (!sliding) {
-                if (slopetype == SLOPEHIGHR) {
-                    if (!moving || (walk_dir == -1 && moving)) {
-                        slopeadd = Calculate_Speed(-256);
-                    }
-                    if (moving) {
-                        slopeadd = Calculate_Speed(-80);
-                    }
-                }
-                if (slopetype == SLOPEHIGHL) {
-                    if (!moving || (walk_dir == 1 && moving)) {
-                        slopeadd = Calculate_Speed(256);
-                    }
-                    if (moving) {
-                        slopeadd = Calculate_Speed(80);
-                    }
-                }
+					//Acceleration values
+					double SPEED_X_TO_SET = SLOPE_ADD + (Calculate_Speed(320.0 + (running * 256.0) + (cansprint * 192.0)) * walk_dir) * moving;
+					double SPEED_ACCEL_X = Calculate_Speed(24.0);
+					double STOPPING_DECEL = Calculate_Speed(16.0);
+					double SKID_ACCEL = Calculate_Speed(16.0 + (24.0 * running) + (cansprint * 40.0));
 
-            }
-            double xspeedtoset = slopeadd + (Calculate_Speed(320.0 + (running * 256.0) + (cansprint * 192.0)) * walk_dir) * moving;
-            double speedaccx = Calculate_Speed(24.0);
-            double stopspeed = Calculate_Speed(16.0);
-            double skidspeed = Calculate_Speed(16.0 + (24.0 * running) + (cansprint * 40.0));
+					//Sliding down a slope :D
+					if (slopetype) {
+						SPEED_X_TO_SET = 0;
+						SPEED_ACCEL_X = 0;
+						STOPPING_DECEL = Calculate_Speed(0x10);
+						SKID_ACCEL = 0;
+						if (slopetype == 1) {
+							SPEED_X_TO_SET = Calculate_Speed(-0x300);
+							SPEED_ACCEL_X = Calculate_Speed(0x18);
+						}
+						if (slopetype == 2) {
+							SPEED_X_TO_SET = Calculate_Speed(0x300);
+							SPEED_ACCEL_X = Calculate_Speed(0x18);
+						}
 
-            if (sliding) { //FINALLY, slope sliding physics are handled here.
-                xspeedtoset = 0;
-                speedaccx = 0;
-                stopspeed = Calculate_Speed(0x10);
-                skidspeed = 0;
-                if (slopetype == SLOPEHIGHR)
-                {
-                    xspeedtoset = Calculate_Speed(-0x300);
-                    speedaccx = Calculate_Speed(0x18);
-                }
-                if (slopetype == SLOPEHIGHL)
-                {
-                    xspeedtoset = Calculate_Speed(0x300);
-                    speedaccx = Calculate_Speed(0x18);
-                }
+						if (slopetype == 3 || slopetype == 4) {
+							SPEED_X_TO_SET = Calculate_Speed(-0x2C0);
+							SPEED_ACCEL_X = Calculate_Speed(0x10);
+						}
+						if (slopetype == 5 || slopetype == 6) {
+							SPEED_X_TO_SET = Calculate_Speed(0x2C0);
+							SPEED_ACCEL_X = Calculate_Speed(0x10);
+						}
+					}
 
-                if (slopetype == 3 || slopetype == 4)
-                {
-                    xspeedtoset = Calculate_Speed(-0x2C0);
-                    speedaccx = Calculate_Speed(0x10);
-                }
-                if (slopetype == 5 || slopetype == 6)
-                {
-                    xspeedtoset = Calculate_Speed(0x2C0);
-                    speedaccx = Calculate_Speed(0x10);
-                }
-            }
-            if (moving) { //and so begins our big physics time. Whenever
-                //i begin to implement more characters like kitra, then
-                //ill need to change this a LOT to fit their movement styles.
-                //consider this temporary!
-                if (hsp > 0.0 && xspeedtoset < 0.0 && walk_dir == -1) {
-                    skidding = -1;
-                    hsp -= skidspeed;
-                }
-                if (hsp < 0.0 && xspeedtoset > 0.0 && walk_dir == 1) {
-                    skidding = 1;
-                    hsp += skidspeed;
-                }
-                if (!onGround) {
-                    skidding = 0;
-                }
-                if (hsp > xspeedtoset) {
-                    hsp = max(xspeedtoset, hsp - speedaccx);
+					//Accel
+					if (moving) {
+						if (hsp > 0.0 && SPEED_X_TO_SET < 0.0 && walk_dir == -1) {
+							skidding = -1; hsp -= SKID_ACCEL;
+						}
+						if (hsp < 0.0 && SPEED_X_TO_SET > 0.0 && walk_dir == 1) {
+							SKID_ACCEL = 1; hsp += SKID_ACCEL;
+						}
+						if (!onGround) {
+							skidding = 0;
+						}
+						if (hsp > SPEED_X_TO_SET) { hsp = marmax(SPEED_X_TO_SET, hsp - SPEED_ACCEL_X); }
+						if (hsp < SPEED_X_TO_SET) { hsp = marmin(SPEED_X_TO_SET, hsp + SPEED_ACCEL_X); }
+					}
+					else {
+						if (onGround) {
+							if (!slopetype) {
+								if (hsp > 0.0) { hsp = marmax(0.0, hsp - STOPPING_DECEL); }
+								if (hsp < 0.0) { hsp = marmin(0.0, hsp + STOPPING_DECEL); }
+							}
+							else {
+								if (hsp > SPEED_X_TO_SET) { hsp = marmax(SPEED_X_TO_SET, hsp - SPEED_ACCEL_X); }
+								if (hsp < SPEED_X_TO_SET) { hsp = marmin(SPEED_X_TO_SET, hsp + SPEED_ACCEL_X); }
+							}
+						}
+					}
 
-                }
-                if (hsp < xspeedtoset) {
-                    hsp = min(xspeedtoset, hsp + speedaccx);
-                }
+					//Slide particles
+                    /* lol there are no slide particles because there's no particles lmao
+					if ((SKIDDING || SLIDING) && !(global_frame_counter & 3) && ON_FL) {
+						createParticle(0x3C, 0x00, 0x8, 3, x + 5.0, y - 27.0, 0, 0, 0, 0);
+					}
+                    */ 
+					//Gravity & max falling Y Speed
+					if (!onGround || slopetype) {
+						vsp += Calculate_Speed(GRAV);
+					}
+					else {
+						prvious_hsp = hsp;
+					}
+					double max_fall = (pad[button_a] || pad[button_b]) ? Calculate_Speed(-1072.0) : Calculate_Speed(-1120.0);
+					vsp = marmax(max_fall, vsp);
 
-            }
-            else {
-                if (onGround == 1.0) {
-                    if (!slopetype) {
-                        if (hsp > 0.0) {
-                            hsp = max(0, (hsp - stopspeed));
-                        }
-                        if (hsp < 0.0) {
-                            hsp = min(0, hsp + stopspeed);
-                        }
+					//Climb Test
+					if ((pad[button_up] || pad[button_down]) /*&& GRABBED_SPRITE == 0xFF*/) { //IM TELLING YOU, IMPLEMENT THE DAMN GRABBING, CJ
+						uint_fast16_t check_x_1 = uint_fast16_t((x + 2) / 16.0);
+						uint_fast16_t check_x_2 = uint_fast16_t((x + 14) / 16.0);
+						uint_fast16_t check_y_1 = uint_fast16_t((y + height - 1) / 16.0);
+						uint_fast16_t check_y_2 = uint_fast16_t((y + 1) / 16.0);
+						if (
+                            false
+                            /*
+							map16_handler.check_climbable(check_x_1, check_y_1) &&
+							map16_handler.check_climbable(check_x_2, check_y_1) &&
+							map16_handler.check_climbable(check_x_1, check_y_2) &&
+							map16_handler.check_climbable(check_x_2, check_y_2)
+                            once i have a good and competent map16 implement, then we come back to climbing
+                            */
+						) {
+							climbing = true;
+						}
+					}
+				}
+				else {
+                    /* just... NO to the entire concept of climbing for now.
+                    I stil have no form of semi-competent map16, or for that matter any interblock communications
+                    so like, no for now. I REALLY need climbing though.
+					//Climb Physics
+					ON_FL = false; jump_is_spin = false;
+					SLIDING = false; CROUCH = false;
+					P_METER = 0;
+					hsp = pad[button_right] - pad[button_left];
+					vsp = pad[button_up] - pad[button_down];
+					if (hsp != 0) {
+						uint_fast16_t check_x_1 = uint_fast16_t((x + (hsp > 0 ? 14 : 2)) / 16.0);
+						uint_fast16_t check_y_1 = uint_fast16_t((y + height - 1) / 16.0);
+						uint_fast16_t check_y_2 = uint_fast16_t((y + 1) / 16.0);
+						if (!map16_handler.check_climbable(check_x_1, check_y_1) && !map16_handler.check_climbable(check_x_1, check_y_2)) {
+							hsp = 0;
+						}
+					}
+					if (vsp != 0) {
+						uint_fast16_t check_x_1 = uint_fast16_t((x + 2) / 16.0);
+						uint_fast16_t check_x_2 = uint_fast16_t((x + 14) / 16.0);
+						uint_fast16_t check_y_1 = uint_fast16_t((y + (vsp > 0 ? (height - 1) : 8)) / 16.0);
+						if (!map16_handler.check_climbable(check_x_1, check_y_1) && !map16_handler.check_climbable(check_x_2, check_y_1)) {
+							if (vsp < 0)
+							{
+								climbing = false;
+							}
+							vsp = 0;
+						}
+					}
 
-                    }
-                    else {
-                        if (hsp > xspeedtoset) {
-                            hsp = max(xspeedtoset, (hsp - speedaccx));
-                        }
-                        if (hsp < xspeedtoset) {
-                            hsp = min(xspeedtoset, hsp + speedaccx);
-                        }
-                    }
-                }
-            }
-            if ((skidding || sliding)) {
-                //TODO: implement particles here for skidding and sliding
-            }
-            if (!onGround || slopetype) {
-                vsp -= Calculate_Speed(gravity);
-            }
-            else {
-                prvious_hsp = hsp;
-            }
-            if (vsp > -Calculate_Speed(-1312.0)) {
-                vsp = -Calculate_Speed(-1312.0);
-            }
-            if (!move(hsp + Calculate_Speed(double(vanillax) * 16.0), 0.0)) {
-                hsp = 0.0;
-            }
-            if (!move(0.0, vsp - Calculate_Speed(double(vanillay) * 16.0))) {
-                if (slopetype) {
-                    if (vsp < 0) {
-                        vsp = 0;
-                    }
-                    if (vsp > -Calculate_Speed(-768)) {
-                        vsp = Calculate_Speed(-768);
-                    }
-                }
-                else {
-                    vsp = 0.0;
-                }
-            }
+					//Animate
+					if (WALKING_DIR == 0) { WALKING_DIR = 1; }
+					if (hsp != 0 || vsp != 0) {
+						FRM += 1;
+						if (FRM > 8) { FRM = 0; WALKING_DIR *= -1; }
+					}
 
-        } //aaaand this appears to conclude our physics related code for above water.
-        //this was very interesting code to write, and i anticipate hundreds,if not thousands of bugs
-        //fun stuff
-        else { //jesus, this is the biggest 'else' of all time.
+					//Climb Test
+					uint_fast16_t check_x_1 = uint_fast16_t((x + 8) / 16.0);
+					uint_fast16_t check_y_1 = uint_fast16_t((y + height / 2) / 16.0);
+					if (!map16_handler.check_climbable(check_x_1, check_y_1)) {
+						climbing = false;
+					}
 
-            sliding = false;
-            spinjumping = false;
-            onGround = false;
-            if (!move(0.0, -1.0, true)) { //Detected a floor below
-
-                if (vsp >= 0)
-                {
-                    onGround = true;
-                    spinjumping = false;
-                }
-                else
-                {
-                    y -= 1;
-                }
-            }
-            else {
-                y -= 1;
-            }
-
-            shs = false;
-            cansprint = false;
-            moving = false;
-            crouch = false;
-
-            if (pad[button_left]) {
-                walk_dir = -1;
-                moving = true;
-            }
-            if (pad[button_right]) {
-                walk_dir = 1;
-                moving = true;
-            }
-            if (pad[button_down]) {
-                if (onGround) { //TODO: this is yet another "we need grabbing" line...
-                    walk_dir = 0;
-                    moving = true;
-                    crouch = true;
-                }
-            }
-
-            if (((pad[button_a] || pad[button_b]) != lastjumped)) { //TODO: this is yet another "we need grabbing" line... {
-                lastjumped = pad[button_a] || pad[button_b];
-                if (lastjumped) {
-                    //play sound effect here...
-                    vsp -= Calculate_Speed(384);
-                }
-                spinjumping = false;
-            }
-
-            double SPEED_X_TO_SET = Calculate_Speed(256.0 / (1.0 + double(onGround))) * walk_dir;
-            double SPEED_ACCEL_X = Calculate_Speed(24.0);
-            double STOPPING_DECEL = Calculate_Speed(24.0);
-            double SKID_ACCEL = Calculate_Speed(40.0);
-            if (true) //TODO: implement grabbing HERE too!
-            {
-                vsp = vsp - Calculate_Speed(-8);
-                vsp = max(Calculate_Speed(-1024), min(vsp, Calculate_Speed(384.0 - (pad[button_down] * 256.0) + (pad[button_up] * 384.0))));
-            }
-            else
-            {
-                vsp = min(1, vsp - Calculate_Speed(8));
-                moving = true;
-                double sp = 256 + (pad[button_right] || pad[button_left]) * 256;
-                SPEED_ACCEL_X = Calculate_Speed(16.0);
-                SPEED_X_TO_SET = Calculate_Speed(sp / (1.0 + double(onGround))) * walk_dir;
-
-                if (pad[button_down])
-                {
-                    vsp = 1;
-                    /*
-                    if (!(global_frame_counter % 8)) //i um, still dont have a global frame counter,
-                        //so im commenting this entire code block out for now.
-                    {
-                        RAM[0x1DF9] = 0x0E;
-                    }
+					if (pad[button_b] != lastjumped) {
+						lastjumped = pad[button_b];
+						if (lastjumped) {
+							climbing = false;
+							vsp = Calculate_Speed(1232.0);
+							RAM[0x1DFA] = 0x01;
+						}
+					}
                     */
-                }
-            }
+				}
+				//End Land Physics. Movement
+				
+				//Force YSPD and XSPD according to 7B/7D values
+				if (vanillax != 0) { hsp = double(int_fast8_t(vanillax)) / 16.0; }
+				if (vanillay != 0) { vsp = double(int_fast8_t(vanillay)) / 16.0; }
 
+				if (!move(hsp, 0.0)) { hsp = 0.0; }
+				if (!move(0.0, vsp)) {
+					if (slopetype) {
+						vsp = marmax(Calculate_Speed(-768), marmin(0, vsp));
+					}
+					else {
+						vsp = 0;
+					}
+				}
+			}
+			else {
+				//SWIMCODE
+				climbing = false;
+                /* we love fortnite
+				if (!(global_frame_counter & 0x7F) && WaterLevel == 0) {
+					createParticle(0x21, 0x00, 0x88, 7, x + 4 + to_scale * -6, y - 16.0, 0, 0, 0);
+				}
+                IMPLEMENT PARTICLES, KNUX*/
+				sliding = false; spinjumping = false;
+				cansprint = false; crouch = false;
 
-            /*
-            Accel start
-            */
-            if (moving) {
-                if (hsp > SPEED_X_TO_SET) {
-                    hsp = max(SPEED_X_TO_SET, hsp - SPEED_ACCEL_X);
-                }
-                if (hsp < SPEED_X_TO_SET) {
-                    hsp = min(SPEED_X_TO_SET, hsp + SPEED_ACCEL_X);
-                }
-                if (hsp > 0.0 && SPEED_X_TO_SET < 0.0 && walk_dir == -1) {
-                    hsp -= SKID_ACCEL;
-                }
-                if (hsp < 0.0 && SPEED_X_TO_SET > 0.0 && walk_dir == 1) {
-                    hsp += SKID_ACCEL;
-                }
-            }
-            else {
-                if (hsp > 0.0) {
-                    hsp = max(0, hsp - STOPPING_DECEL);
-                }
-                if (hsp < 0.0) {
-                    hsp = min(0, hsp + STOPPING_DECEL);
-                }
-            }
-            /*
-            Accel end
-            */
+				moving = pad[button_left] || pad[button_right];
+				if (pad[button_left]) { walk_dir = -1; }
+				if (pad[button_right]) { walk_dir = 1; }
 
+				if (pad[button_down]) {
+					if (onGround /*&& GRABBED_SPRITE == 0xFF*/) {
+						walk_dir = 0;
+						moving = true;
+						crouch = true;
+					}
+				}
 
-            if (!move(hsp + Calculate_Speed(double(vanillax) * 16.0), 0.0)) {
-                hsp = 0.0;
-            }
-            if (!move(0.0, hsp + Calculate_Speed(double(vanillay) * 16.0))) {
-                vsp = 0;
-            }
-        }
-        /*
-            No more swimming
-        */
-    }
+				bool isJumping = pad[button_b] || pad[button_a];
+				if (isJumping != lastjumped) {
+					lastjumped = isJumping;
+					if (isJumping /*&& GRABBED_SPRITE == 0xFF*/) {
+						//RAM[0x1DF9] = 0x0E; SOUND EFEFCT
+						vsp += Calculate_Speed(384);
+						spinjumping = false;
+					}
+				}
 
-    ypressed = false;
+				double SPEED_X_TO_SET = Calculate_Speed(256.0 / (1.0 + double(onGround))) * walk_dir;
+				double STOP_SPEED = 0;
+                /* man, tons of unimplemented stuff sadly
+				if (WaterLevel > 0 && y <= (WaterLevel - height)) {
+					SPEED_X_TO_SET -= Calculate_Speed(192.0);
+					STOP_SPEED -= Calculate_Speed(256.0);
+				}
+                */
+				double SPEED_ACCEL_X = Calculate_Speed(24.0);
+				double STOPPING_DECEL = Calculate_Speed(24.0);
+				double SKID_ACCEL = Calculate_Speed(40.0);
+				if (true/*GRABBED_SPRITE == 0xFF*/) {
+					vsp = vsp + Calculate_Speed(-8);
+					vsp = marmax(Calculate_Speed(-1024), marmin(vsp, Calculate_Speed(384.0 - (pad[button_down] * 256.0) + (pad[button_up] * 384.0))));
+				}
+				else {
+					vsp = marmin(1.0, vsp + Calculate_Speed(8));
+					moving = true;
+					double sp = 256 + (pad[button_right] || pad[button_left]) * 256;
+					SPEED_ACCEL_X = Calculate_Speed(16.0);
+					SPEED_X_TO_SET = Calculate_Speed(sp / (1.0 + double(onGround)))* walk_dir;
 
-    if (x < 8.0) {
-        x = 8.0;
-        hsp = 0;
-    }
-    if (x > double(-24 + lvl->width * 16)) {
-        x = double(-24 + lvl->width * 16);
+					if (pad[button_down]) {
+						vsp = -1;
+						/*if (!(global_frame_counter % 8)) {
+						    RAM[0x1DF9] = 0x0E; sound effect
+						}*/
+					}
+				}
+				//Accel start
+				if (moving) {
+					if (hsp > SPEED_X_TO_SET) { hsp = marmax(SPEED_X_TO_SET, hsp - SPEED_ACCEL_X); }
+					if (hsp < SPEED_X_TO_SET) { hsp = marmin(SPEED_X_TO_SET, hsp + SPEED_ACCEL_X); }
+					if (hsp > 0.0 && SPEED_X_TO_SET < 0.0 && walk_dir == -1) { hsp -= SKID_ACCEL; }
+					if (hsp < 0.0 && SPEED_X_TO_SET > 0.0 && walk_dir == 1) { hsp += SKID_ACCEL; }
+				}
+				else {
+					if (hsp > STOP_SPEED) { hsp = marmax(STOP_SPEED, hsp - STOPPING_DECEL); }
+					if (hsp < STOP_SPEED) { hsp = marmin(STOP_SPEED, hsp + STOPPING_DECEL); }
+				}
+				//Accel end
+				//Force YSPD and XSPD according to 7B/7D values
+				if (vanillay != 0) { vsp = double(int_fast8_t(vanillay)) / 16.0; }
+				if (!move(hsp + double(int_fast8_t(vanillax)) / 16.0, 0.0)) { hsp = 0.0; }
+				if (!move(0.0, vsp)) { vsp = 0.0; }
+				/*if (WaterLevel > 0) {
+					if (y > (WaterLevel - height) && !ON_FL && vsp > 0) {
+						if (pad[button_up] && (pad[button_b] || pad[button_a])) {
+							//JumpOutOfWater();
+						}
+						else {
+							y = WaterLevel - height;
+							vsp = 0.0;
+						}
+					}
+				}*/
+			}
+			//Swimming code end, close of brackets
+		}
 
-    }
-    //TODO: grabbing items again
-    return 1;
+		//Process Normal stuff, rest is history.
 
-}
+		ypressed = false;
+		if (x < 8.0) { x = 8.0; hsp = 0; }
+		if (x > double(-24 + lvl->width * 16)) { x = double(-24 + lvl->width * 16); }
+		return 1;
+	}
 void mplayer::cameralogic() {
     if (dead || freezesprites) {
         return;
@@ -1084,7 +1070,7 @@ int mplayer::process()
 
     double GRAV = -double(GRAVITY);
     bool RUN = false;
-    bool MOV = false;
+    bool moving = false;
     bool SLIGHT_HIGH_SPEED = false;
 
 
@@ -1177,11 +1163,11 @@ int mplayer::process()
             }
             if (pad[button_left]) {
                 walk_dir = -1;
-                MOV = true;
+                moving = true;
             }
             if (pad[button_right]) {
                 walk_dir = 1;
-                MOV = true;
+                moving = true;
             }
 
             /*
@@ -1189,7 +1175,7 @@ int mplayer::process()
             */
             if (sliding)
             {
-                if ((MOV == true || (hsp == 0 && !slopetype)) && onGround)
+                if ((moving == true || (hsp == 0 && !slopetype)) && onGround)
                 {
                     sliding = false;
                 }
@@ -1202,7 +1188,7 @@ int mplayer::process()
                 {
                     if (true) //TODO: implement grabbing
                     {
-                        if (MOV == false && !(pad[button_left] || pad[button_right]))
+                        if (moving == false && !(pad[button_left] || pad[button_right]))
                         {
                             sliding = true;
                         }
@@ -1214,7 +1200,7 @@ int mplayer::process()
                     else
                     {
                         walk_dir = 0;
-                        MOV = false;
+                        moving = false;
                         crouch = true;
                     }
                 }
@@ -1222,7 +1208,7 @@ int mplayer::process()
                 {
                     if (onGround) {
                         walk_dir = 0;
-                        MOV = true;
+                        moving = true;
                         crouch = true;
                     }
                 }
@@ -1246,7 +1232,7 @@ int mplayer::process()
                     {
                         sliding = false;
                         //Spinjump
-                        vsp = Calculate_Speed(1136.0 + (abs(hsp) * 64.0)); //(148.0 * SLIGHT_HIGH_SPEED) + (32.0 * (X_SPEED > Calculate_Speed(320+256+176)))
+                        vsp = Calculate_Speed(1136.0 + (abs(hsp) * 64.0)); //(148.0 * SLIGHT_HIGH_SPEED) + (32.0 * (hsp > Calculate_Speed(320+256+176)))
                         //play spinjump sound here
                         spinjumping = true;
                     }
@@ -1254,7 +1240,7 @@ int mplayer::process()
                     {
                         sliding = false;
                         //Normal jump
-                        vsp = Calculate_Speed(1232.0 + (abs(hsp) * 64.0)); //(148.0 * SLIGHT_HIGH_SPEED) + (32.0 * (X_SPEED > Calculate_Speed(320+256+176)))
+                        vsp = Calculate_Speed(1232.0 + (abs(hsp) * 64.0)); //(148.0 * SLIGHT_HIGH_SPEED) + (32.0 * (hsp > Calculate_Speed(320+256+176)))
                         //play jump sound here
 
                         //jump_is_spin = false;
@@ -1270,16 +1256,16 @@ int mplayer::process()
             {
                 if (slopetype == 1)
                 {
-                    if (!MOV || (walk_dir == -1 && MOV)) { SLOPE_ADD = Calculate_Speed(-256); }
-                    if (MOV) { SLOPE_ADD = Calculate_Speed(-80); }
+                    if (!moving || (walk_dir == -1 && moving)) { SLOPE_ADD = Calculate_Speed(-256); }
+                    if (moving) { SLOPE_ADD = Calculate_Speed(-80); }
                 }
                 if (slopetype == 2)
                 {
-                    if (!MOV || (walk_dir == 1 && MOV)) { SLOPE_ADD = Calculate_Speed(256); }
-                    if (MOV) { SLOPE_ADD = Calculate_Speed(80); }
+                    if (!moving || (walk_dir == 1 && moving)) { SLOPE_ADD = Calculate_Speed(256); }
+                    if (moving) { SLOPE_ADD = Calculate_Speed(80); }
                 }
             }
-            double SPEED_X_TO_SET = SLOPE_ADD + (Calculate_Speed(320.0 + (RUN * 256.0) + (cansprint * 192.0)) * walk_dir) * MOV;
+            double SPEED_X_TO_SET = SLOPE_ADD + (Calculate_Speed(320.0 + (RUN * 256.0) + (cansprint * 192.0)) * walk_dir) * moving;
             double SPEED_ACCEL_X = Calculate_Speed(24.0);
             double STOPPING_DECEL = Calculate_Speed(16.0);
             double SKID_ACCEL = Calculate_Speed(16.0 + (24.0 * RUN) + (cansprint * 40.0));
@@ -1319,7 +1305,7 @@ int mplayer::process()
             /*
             Accel start
             */
-            if (MOV) {
+            if (moving) {
                 if (hsp > 0.0 && SPEED_X_TO_SET < 0.0 && walk_dir == -1) {
                     skidding = -1;
                     hsp -= SKID_ACCEL;
@@ -1332,11 +1318,11 @@ int mplayer::process()
                     skidding = 0;
                 }
                 if (hsp > SPEED_X_TO_SET) {
-                    hsp = max(SPEED_X_TO_SET, hsp - SPEED_ACCEL_X);
+                    hsp = marmax(SPEED_X_TO_SET, hsp - SPEED_ACCEL_X);
                 }
 
                 if (hsp < SPEED_X_TO_SET) {
-                    hsp = min(SPEED_X_TO_SET, hsp + SPEED_ACCEL_X);
+                    hsp = marmin(SPEED_X_TO_SET, hsp + SPEED_ACCEL_X);
                 }
             }
             else {
@@ -1344,21 +1330,21 @@ int mplayer::process()
                     if (!slopetype)
                     {
                         if (hsp > 0.0) {
-                            hsp = max(0, hsp - STOPPING_DECEL);
+                            hsp = marmax(0, hsp - STOPPING_DECEL);
                         }
                         if (hsp < 0.0) {
-                            hsp = min(0, hsp + STOPPING_DECEL);
+                            hsp = marmin(0, hsp + STOPPING_DECEL);
                         }
                     }
                     else
                     {
 
                         if (hsp > SPEED_X_TO_SET) {
-                            hsp = max(SPEED_X_TO_SET, hsp - SPEED_ACCEL_X);
+                            hsp = marmax(SPEED_X_TO_SET, hsp - SPEED_ACCEL_X);
                         }
 
                         if (hsp < SPEED_X_TO_SET) {
-                            hsp = min(SPEED_X_TO_SET, hsp + SPEED_ACCEL_X);
+                            hsp = marmin(SPEED_X_TO_SET, hsp + SPEED_ACCEL_X);
                         }
                     }
                 }
@@ -1426,21 +1412,21 @@ int mplayer::process()
 
             SLIGHT_HIGH_SPEED = false;
             cansprint = false;
-            MOV = false;
+            moving = false;
             crouch = false;
 
             if (pad[button_left]) {
                 walk_dir = -1;
-                MOV = true;
+                moving = true;
             }
             if (pad[button_right]) {
                 walk_dir = 1;
-                MOV = true;
+                moving = true;
             }
             if (pad[button_down]) {
                 if (onGround && true) { // still no grabbing, sorry guys!
                     walk_dir = 0;
-                    MOV = true;
+                    moving = true;
                     crouch = true;
                 }
             }
@@ -1461,12 +1447,12 @@ int mplayer::process()
             if (true)
             {
                 vsp = vsp + Calculate_Speed(-8);
-                vsp = max(Calculate_Speed(-1024), min(vsp, Calculate_Speed(384.0 - (pad[button_down] * 256.0) + (pad[button_up] * 384.0))));
+                vsp = marmax(Calculate_Speed(-1024), marmin(vsp, Calculate_Speed(384.0 - (pad[button_down] * 256.0) + (pad[button_up] * 384.0))));
             }
             else
             {
-                vsp = min(1, vsp + Calculate_Speed(8));
-                MOV = true;
+                vsp = marmin(1, vsp + Calculate_Speed(8));
+                moving = true;
                 double sp = 256 + (pad[button_right] || pad[button_left]) * 256;
                 SPEED_ACCEL_X = Calculate_Speed(16.0);
                 SPEED_X_TO_SET = Calculate_Speed(sp / (1.0 + double(onGround))) * walk_dir;
@@ -1486,12 +1472,12 @@ int mplayer::process()
             /*
             Accel start
             */
-            if (MOV) {
+            if (moving) {
                 if (hsp > SPEED_X_TO_SET) {
-                    hsp = max(SPEED_X_TO_SET, hsp - SPEED_ACCEL_X);
+                    hsp = marmax(SPEED_X_TO_SET, hsp - SPEED_ACCEL_X);
                 }
                 if (hsp < SPEED_X_TO_SET) {
-                    hsp = min(SPEED_X_TO_SET, hsp + SPEED_ACCEL_X);
+                    hsp = marmin(SPEED_X_TO_SET, hsp + SPEED_ACCEL_X);
                 }
                 if (hsp > 0.0 && SPEED_X_TO_SET < 0.0 && walk_dir == -1) {
                     hsp -= SKID_ACCEL;
@@ -1502,10 +1488,10 @@ int mplayer::process()
             }
             else {
                 if (hsp > 0.0) {
-                    hsp = max(0, hsp - STOPPING_DECEL);
+                    hsp = marmax(0, hsp - STOPPING_DECEL);
                 }
                 if (hsp < 0.0) {
-                    hsp = min(0, hsp + STOPPING_DECEL);
+                    hsp = marmin(0, hsp + STOPPING_DECEL);
                 }
             }
             /*
@@ -1521,7 +1507,7 @@ int mplayer::process()
             }
         }
         /*
-            No more swimming
+            No more swimmarming
         */
     }
     ypressed = false;
