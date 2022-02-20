@@ -48,9 +48,6 @@
     <ClCompile Include="source\titlescreen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\mario.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\background.h">
@@ -92,7 +89,13 @@
     <ClInclude Include="source\titlescreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\mario.h">
+    <ClInclude Include="source\cutscene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\cutsceneplayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\bullet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -17,7 +17,7 @@ class coin :
         coin(int x, int y, SDL_Texture* text);
         void render(SDL_Renderer* render, int viewx, int viewy);
         void logic(double deltaTime);
-        void phys(double deltaTime, std::vector<int> colliders) {};
+        void phys(double deltaTime, std::vector<block*> colliders, int width) {};
         void collided(GameObject* object, level* lvl);
         int getx() { return x; }
         int gety() { return y; }

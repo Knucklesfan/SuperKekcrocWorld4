@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 {
 
         srand((unsigned)time(0));
-        SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+        SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl"); //LITERALLY NO CLUE WHY THIS WORKS
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
             std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 

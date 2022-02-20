@@ -152,7 +152,6 @@
     <ClCompile Include="source\font.cpp" />
     <ClCompile Include="source\level.cpp" />
     <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\mario.cpp" />
     <ClCompile Include="source\message.cpp" />
     <ClCompile Include="source\player.cpp" />
     <ClCompile Include="source\titlescreen.cpp" />
@@ -163,11 +162,13 @@
     <ClInclude Include="source\bgtextscene.h" />
     <ClInclude Include="source\block.h" />
     <ClInclude Include="source\bluecoin.h" />
+    <ClInclude Include="source\bullet.h" />
     <ClInclude Include="source\coin.h" />
+    <ClInclude Include="source\cutsceneplayer.h" />
     <ClInclude Include="source\font.h" />
     <ClInclude Include="source\GameObject.h" />
+    <ClInclude Include="source\cutscene.h" />
     <ClInclude Include="source\level.h" />
-    <ClInclude Include="source\mario.h" />
     <ClInclude Include="source\message.h" />
     <ClInclude Include="source\player.h" />
     <ClInclude Include="source\scene.h" />

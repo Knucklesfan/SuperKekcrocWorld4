@@ -14,7 +14,6 @@
 #include "message.h"
 #include "coin.h"
 #include "bluecoin.h"
-#include "mario.h"
 
 class level : public scene {
     public:
@@ -23,6 +22,8 @@ class level : public scene {
         std::vector<GameObject*> objects;
         std::vector<Mix_Music*> music;
         std::vector<Mix_Chunk*> sounds;
+        std::vector<SDL_Texture*> textures;
+
         block* gettile(int x, int y, int layer);
         SDL_Texture* text;
         level(SDL_Renderer* render, std::string path, bg* backg, font* debug, std::vector<Mix_Chunk*> snds, std::vector<Mix_Music*> mus, std::vector<SDL_Texture*> textures);
@@ -30,6 +31,7 @@ class level : public scene {
         void logic(double);
         void reset();
         void keyPressed(SDL_Keycode);
+        bool instance(GameObject* obj);
         int viewx = 0;
         int viewy = 0;
         int width = 0;
@@ -37,7 +39,6 @@ class level : public scene {
         int startx = 0;
         int starty = 0;
         std::vector<std::vector<block*>> actAsVec;
-        mplayer* mario;
         Player* player;
         message* messagebox;
         std::vector<std::string> words = {

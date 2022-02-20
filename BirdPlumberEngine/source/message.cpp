@@ -122,7 +122,7 @@ void message::loadFromFile(std::string file, bool folder) {
 
 void message::render(SDL_Renderer* renderer) {
     if (active) {
-        util::drawTexture(renderer, filltexture, drawx + width, drawy + height, 0, 1.0, false, SDL_FLIP_NONE, 0, 0, 1, 1, drawwid - width, drawheight - height);
+        util::drawTexture(renderer, filltexture, drawx + width-1, drawy + height-1, 0, 1.0, false, SDL_FLIP_NONE, 0, 0, 1, 1, drawwid - width+2, drawheight - height+1);
         util::drawTexture(renderer, toptexture, drawx, drawy, 0, 1.0, false, SDL_FLIP_NONE, 0, 0, width, height);
         util::drawTexture(renderer, bottomtexture, drawx, drawy + drawheight, 0, 1.0, false, SDL_FLIP_NONE, 0, 0, width, height);
         int i = width;
@@ -155,7 +155,7 @@ void message::logic(double deltaTime) {
 
         if (!expand || hide) {
             if (hide) {
-                drawheight -= deltaTime * 100;
+                drawheight -= deltaTime * 200;
                 if (drawheight <= height) {
                     expand = false;
                     hide = false;
@@ -164,7 +164,7 @@ void message::logic(double deltaTime) {
                 }
             }
             else {
-                drawheight += deltaTime * 100;
+                drawheight += deltaTime * 200;
                 if (drawheight >= drawhei) {
                     expand = true;
                 }
@@ -172,7 +172,7 @@ void message::logic(double deltaTime) {
         }
         else {
             if (onscrnwrds.length() < towrite[currentword].length()) {
-                bliptime += deltaTime*100;
+                bliptime += deltaTime*1000;
                 if (bliptime >= 10) {
                     if (towrite[currentword].at(onscrnwrds.length()) != '\n' || towrite[currentword].at(onscrnwrds.length()) != ' ') {
                         Mix_PlayChannel(1, sounds[1], 0);
