@@ -471,7 +471,7 @@ int mplayer::logic() {
     hide = invinc_frames > 0 ? !hide : false; //alright, ngl, i picked a bad name
     //YES, HIDE MAKES YOU INVISIBLE. STOP ASKING.
 
-    double GRAV =  (spinjumping ? pad[button_a] : true) ? 0.0 : -double(96) / (1 + (pad[button_a] || pad[button_b]));
+    double GRAV =  (spinjumping ? pad[button_a] : false) ? 0.0 : -double(96) / (1 + (pad[button_a] || pad[button_b]));
     bool running = pad[button_y];
     bool moving = false;
     bool shs = false; //SLIGHT HIGH SPEED.. whatever that means
@@ -496,7 +496,7 @@ int mplayer::logic() {
     }
     else {
         onGround = false;
-        if (!move(0.0, -1.0, true) && vsp <= 0) { //Detected a floor below
+        if (!move(0.0, -1.0, true) && vsp >= 0) { //Detected a floor below
             onGround = true;
             spinjumping = false;
         }
@@ -509,8 +509,10 @@ int mplayer::logic() {
             
             
             */
+            std::cout << "sure aint swimin";
 
            if(!climbing) { // completely regular person movement
+                std::cout << "sure aint climbin";
 
                 if(onGround) {
                     cansprint = false;
@@ -588,13 +590,13 @@ int mplayer::logic() {
 							if (playerstate == 2 && cansprint) { /*IMPLEMENT POWERUPS*/}
 							if (pad[button_a] /*&& GRABBED_SPRITE == 0xFF*/) {
 								//Spinjump
-								vsp = Calculate_Speed(1136.0 + (abs(hsp) * 64.0));
+								vsp = -Calculate_Speed(1136.0 + (abs(hsp) * 64.0));
 								//RAM[0x1DFC] = 0x04; PLAY SOUND EFFECT HERE
 								spinjumping = true;
 							}
 							else {
 								//Normal jump
-								vsp = Calculate_Speed(1232.0 + (abs(hsp) * 64.0));
+								vsp = -Calculate_Speed(1232.0 + (abs(hsp) * 64.0));
 								//RAM[0x1DFA] = 0x01; PLAY YET ANOTHER SOUND EFFECT
 							}
 						}
@@ -779,6 +781,7 @@ int mplayer::logic() {
 			}
 			else {
 				//SWIMCODE
+                std::cout << "helo i am under da water";
 				climbing = false;
                 /* we love fortnite
 				if (!(global_frame_counter & 0x7F) && WaterLevel == 0) {
@@ -805,7 +808,7 @@ int mplayer::logic() {
 					lastjumped = isJumping;
 					if (isJumping /*&& GRABBED_SPRITE == 0xFF*/) {
 						//RAM[0x1DF9] = 0x0E; SOUND EFEFCT
-						vsp += Calculate_Speed(384);
+						vsp -= Calculate_Speed(384);
 						spinjumping = false;
 					}
 				}
